@@ -15,6 +15,7 @@ Scope {
         property bool closing
         property bool clipboardOnly
         property bool searchMode
+        property bool pickOnly
 
         Variants {
             model: Screens.screens
@@ -55,6 +56,7 @@ Scope {
             root.clipboardOnly = false;
             root.searchMode = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
 
         function openFreeze(): void {
@@ -63,6 +65,7 @@ Scope {
             root.clipboardOnly = false;
             root.searchMode = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
 
         function openClip(): void {
@@ -71,6 +74,7 @@ Scope {
             root.clipboardOnly = true;
             root.searchMode = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
 
         function openFreezeClip(): void {
@@ -79,6 +83,7 @@ Scope {
             root.clipboardOnly = true;
             root.searchMode = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
 
         function openSearch(): void {
@@ -87,6 +92,15 @@ Scope {
             root.closing = false;
             root.clipboardOnly = false;
             root.activeAsync = true;
+            root.pickOnly = false;
+        }
+
+        function pick(): void {
+            root.freeze = false;
+            root.closing = false;
+            root.clipboardOnly = false;
+            root.activeAsync = true;
+            root.pickOnly = true;
         }
 
         target: "picker"
@@ -102,6 +116,7 @@ Scope {
             root.closing = false;
             root.clipboardOnly = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
     }
 
@@ -115,6 +130,7 @@ Scope {
             root.closing = false;
             root.clipboardOnly = false;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
     }
 
@@ -128,6 +144,7 @@ Scope {
             root.closing = false;
             root.clipboardOnly = true;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
     }
 
@@ -141,6 +158,7 @@ Scope {
             root.closing = false;
             root.clipboardOnly = true;
             root.activeAsync = true;
+            root.pickOnly = false;
         }
     }
 }

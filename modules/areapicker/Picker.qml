@@ -132,7 +132,10 @@ MouseArea {
         if (closeAnim.running)
             return;
 
-        if (root.loader.freeze) {
+        if (root.loader.pickOnly) {
+            Quickshell.execDetached(["sh", "-c", `echo ${screen.x + rsx},${screen.y + rsy} ${sw}x${sh} &> /tmp/caelestia-picker-${Quickshell.processId}-coords`]);
+            closeAnim.start();
+        } else if (root.loader.freeze) {
             save();
         } else {
             overlay.visible = border.visible = false;
