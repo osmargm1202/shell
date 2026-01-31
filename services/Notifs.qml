@@ -76,6 +76,7 @@ Singleton {
                     urgency: n.urgency,
                     resident: n.resident,
                     transient: n.isTransient,
+                    key: n.key,
                     hasActionIcons: n.hasActionIcons,
                     actions: n.actions
                 }))))
@@ -107,6 +108,30 @@ Singleton {
                 popup: root.shouldShowPopup(),
                 notification: notif
             });
+
+            if (comp.key !== "")
+                for (const n of root.list.slice())
+                    if (n.key === comp.key) {
+                        n.popup = comp.popup;
+                        n.closed = comp.closed;
+                        n.notification = comp.notification;
+                        n.id = comp.id;
+                        n.summary = comp.summary;
+                        n.body = comp.body;
+                        n.appIcon = comp.appIcon;
+                        n.image = comp.image;
+                        n.expireTimeout = comp.expireTimeout;
+                        n.urgency = comp.urgency;
+                        n.resident = comp.resident;
+                        n.isTransient = comp.isTransient;
+                        n.key = comp.key;
+                        n.hasActionIcons = comp.hasActionIcons;
+                        n.actions = comp.actions;
+
+                        n.timer.restart();
+                        return;
+                    }
+
             root.list = [comp, ...root.list];
 
             if (!props.dnd && notif.appName !== "caelestia-cli" && !GlobalConfig.audio.sounds.disabledNotifApps.includes(notif.appName))
