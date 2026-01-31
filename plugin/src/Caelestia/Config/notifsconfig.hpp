@@ -19,6 +19,7 @@ class NotifsConfig : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(bool, actionOnClick, false)
     CONFIG_PROPERTY(int, groupPreviewNum, 3)
     CONFIG_PROPERTY(bool, openExpanded, false)
+    CONFIG_PROPERTY(bool, expandOnHover, false)
 
 public:
     explicit NotifsConfig(QObject* parent = nullptr)
