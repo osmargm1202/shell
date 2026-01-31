@@ -55,7 +55,7 @@ QtObject {
         interval: notif.expireTimeout > 0 ? notif.expireTimeout : notif.hasFullscreen ? GlobalConfig.notifs.fullscreenExpireTimeout : GlobalConfig.notifs.defaultExpireTimeout
         onTriggered: {
             // Always expire if the active workspace has a fullscreen window
-            if (GlobalConfig.notifs.expire || notif.hasFullscreen) {
+            if (notif.urgency !== NotificationUrgency.Critical && (GlobalConfig.notifs.expire || notif.hasFullscreen)) {
                 notif.popup = false;
                 if (notif.isTransient)
                     notif.close();
