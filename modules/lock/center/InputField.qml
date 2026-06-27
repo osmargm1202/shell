@@ -116,7 +116,7 @@ Item {
     }
 
     component CharItem: Item {
-        id: char
+        id: charItem
 
         required property int index
         property real nonAnimWidthScale: 1
@@ -133,7 +133,7 @@ Item {
 
             anchors.centerIn: parent
             implicitSize: charList.implicitHeight * 1.5
-            shape: root.shapeQueue[char.index % root.shapeQueue.length] ?? MaterialShape.Circle
+            shape: root.shapeQueue[charItem.index % root.shapeQueue.length] ?? MaterialShape.Circle
             color: Colours.palette.m3onSurface
 
             Behavior on color {
@@ -161,14 +161,14 @@ Item {
                         type: Anim.FastSpatial
                     }
                     Anim {
-                        target: char
+                        target: charItem
                         property: "implicitWidth"
                         from: charList.implicitHeight
                         to: charList.implicitHeight * 1.3
                         type: Anim.DefaultEffects
                     }
                     PropertyAction {
-                        target: char
+                        target: charItem
                         property: "nonAnimWidthScale"
                         value: 1.5
                     }
@@ -189,13 +189,13 @@ Item {
                         type: Anim.FastSpatial
                     }
                     Anim {
-                        target: char
+                        target: charItem
                         property: "implicitWidth"
                         to: charList.implicitHeight
                         type: Anim.DefaultEffects
                     }
                     PropertyAction {
-                        target: char
+                        target: charItem
                         property: "nonAnimWidthScale"
                         value: 1
                     }
@@ -206,7 +206,7 @@ Item {
                 id: removeAnim
 
                 PropertyAction {
-                    target: char
+                    target: charItem
                     property: "ListView.delayRemove"
                     value: true
                 }
@@ -224,7 +224,7 @@ Item {
                     }
                 }
                 PropertyAction {
-                    target: char
+                    target: charItem
                     property: "ListView.delayRemove"
                     value: false
                 }
