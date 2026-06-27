@@ -40,7 +40,7 @@ class BarWorkspaces : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_PROPERTY(int, shown, 5)
+    CONFIG_PROPERTY(int, shown, 10)
     CONFIG_PROPERTY(bool, activeIndicator, true)
     CONFIG_PROPERTY(bool, occupiedBg, false)
     CONFIG_PROPERTY(bool, showWindows, true)
@@ -48,9 +48,9 @@ class BarWorkspaces : public ConfigObject {
     CONFIG_PROPERTY(int, maxWindowIcons, 5)
     CONFIG_PROPERTY(bool, activeTrail, false)
     CONFIG_GLOBAL_PROPERTY(bool, perMonitorWorkspaces, true)
-    CONFIG_PROPERTY(QString, label, u"  "_s)
-    CONFIG_PROPERTY(QString, occupiedLabel, u"󰮯"_s)
-    CONFIG_PROPERTY(QString, activeLabel, u"󰮯"_s)
+    CONFIG_PROPERTY(QString, label, u""_s)
+    CONFIG_PROPERTY(QString, occupiedLabel, u""_s)
+    CONFIG_PROPERTY(QString, activeLabel, u""_s)
     CONFIG_PROPERTY(QString, capitalisation, u"preserve"_s)
     CONFIG_GLOBAL_PROPERTY(QVariantList, specialWorkspaceIcons)
     CONFIG_GLOBAL_PROPERTY(QVariantList, windowIcons,

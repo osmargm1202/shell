@@ -77,24 +77,80 @@ Item {
             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
         }
 
-        CustomMouseArea {
+        Item {
             Layout.fillWidth: true
             implicitHeight: Tokens.padding.medium * 3
 
-            onWheel: event => {
-                if (event.angleDelta.y > 0)
-                    Audio.incrementVolume();
-                else if (event.angleDelta.y < 0)
-                    Audio.decrementVolume();
+            CustomMouseArea {
+                anchors.fill: parent
+
+                onWheel: event => {
+                    if (event.angleDelta.y > 0)
+                        Audio.incrementVolume();
+                    else if (event.angleDelta.y < 0)
+                        Audio.decrementVolume();
+                }
+
+                StyledSlider {
+                    anchors.fill: parent
+
+                    readonly property real maxVol: GlobalConfig.services.maxVolume
+
+                    value: maxVol > 1 ? Audio.volume / maxVol : Audio.volume
+                    onInteraction: v => Audio.setVolume(maxVol > 1 ? v * maxVol : v)
+                }
+
+                // 100% marker — visible only when maxVolume > 1
+                Rectangle {
+                    visible: GlobalConfig.services.maxVolume > 1.0
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: parent.width * (1.0 / GlobalConfig.services.maxVolume) - 1
+                    width: 2
+                    height: parent.implicitHeight
+                    radius: 1
+                    color: Colours.palette.m3outline
+                }
             }
+        }
 
-            StyledSlider {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                implicitHeight: parent.implicitHeight
+        StyledText {
+            Layout.topMargin: Tokens.spacing.medium
+            text: qsTr("Mic Volume (%1)").arg(Audio.sourceMuted ? qsTr("Muted") : `${Math.round(Audio.sourceVolume * 100)}%`)
+            font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+        }
 
-                value: Audio.volume
-                onInteraction: value => Audio.setVolume(value)
+        Item {
+            Layout.fillWidth: true
+            implicitHeight: Tokens.padding.medium * 3
+
+            CustomMouseArea {
+                anchors.fill: parent
+
+                onWheel: event => {
+                    if (event.angleDelta.y > 0)
+                        Audio.incrementSourceVolume();
+                    else if (event.angleDelta.y < 0)
+                        Audio.decrementSourceVolume();
+                }
+
+                StyledSlider {
+                    anchors.fill: parent
+
+                    readonly property real maxVol: GlobalConfig.services.maxVolume
+
+                    value: maxVol > 1 ? Audio.sourceVolume / maxVol : Audio.sourceVolume
+                    onInteraction: v => Audio.setSourceVolume(maxVol > 1 ? v * maxVol : v)
+                }
+
+                Rectangle {
+                    visible: GlobalConfig.services.maxVolume > 1.0
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: parent.width * (1.0 / GlobalConfig.services.maxVolume) - 1
+                    width: 2
+                    height: parent.implicitHeight
+                    radius: 1
+                    color: Colours.palette.m3outline
+                }
             }
         }
 
