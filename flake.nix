@@ -37,7 +37,7 @@
       let
         sys = pkgs.stdenv.hostPlatform.system;
         caelestia-cli = (inputs.caelestia-cli.packages.${sys}.default).overrideAttrs (old: {
-          postInstall = (old.postInstall or "") + ''
+          postInstall = (old.postInstall or "") + "\n" + ''
             schemeDir=$(echo "$out"/lib/python*/site-packages/caelestia/data/schemes)
             install -Dm644 ${./themes/teal/dark.txt} "$schemeDir/teal/default/dark.txt"
             install -Dm644 ${./themes/teal/light.txt} "$schemeDir/teal/default/light.txt"
