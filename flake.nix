@@ -33,21 +33,32 @@
   in {
     formatter = forAllSystems (pkgs: pkgs.alejandra);
 
-    packages = forAllSystems (pkgs: rec {
-      caelestia-shell = pkgs.callPackage ./nix {
-        inherit (inputs) m3shapes;
-        rev = self.rev or self.dirtyRev;
-        stdenv = pkgs.clangStdenv;
-        quickshell = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
-          withX11 = false;
-          withI3 = false;
+    packages = forAllSystems (pkgs:
+      let
+        sys = pkgs.stdenv.hostPlatform.system;
+        caelestia-cli = (inputs.caelestia-cli.packages.${sys}.default).overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            schemeDir=$(echo "$out"/lib/python*/site-packages/caelestia/data/schemes)
+            install -Dm644 ${./themes/teal/dark.txt} "$schemeDir/teal/default/dark.txt"
+            install -Dm644 ${./themes/teal/light.txt} "$schemeDir/teal/default/light.txt"
+          '';
+        });
+      in
+      rec {
+        caelestia-shell = pkgs.callPackage ./nix {
+          inherit (inputs) m3shapes;
+          rev = self.rev or self.dirtyRev;
+          stdenv = pkgs.clangStdenv;
+          quickshell = inputs.quickshell.packages.${sys}.default.override {
+            withX11 = false;
+            withI3 = false;
+          };
+          inherit caelestia-cli;
         };
-        caelestia-cli = inputs.caelestia-cli.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      };
-      with-cli = caelestia-shell.override {withCli = true;};
-      debug = caelestia-shell.override {debug = true;};
-      default = caelestia-shell;
-    });
+        with-cli = caelestia-shell.override {withCli = true;};
+        debug = caelestia-shell.override {debug = true;};
+        default = caelestia-shell;
+      });
 
     devShells = forAllSystems (pkgs: {
       default = let
