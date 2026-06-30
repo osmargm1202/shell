@@ -29,7 +29,6 @@ PageBase {
             text: qsTr("COLOUR SOURCE")
             font: Tokens.font.label.small
             color: Colours.palette.m3primary
-            letterSpacing: 1.2
         }
 
         RowLayout {
@@ -143,7 +142,6 @@ PageBase {
                 text: qsTr("THEMES")
                 font: Tokens.font.label.small
                 color: Colours.palette.m3primary
-                letterSpacing: 1.2
             }
 
             Repeater {
