@@ -15,7 +15,7 @@ Singleton {
     id: root
 
     property list<NotifData> list: []
-    readonly property list<NotifData> notClosed: list.filter(n => !n.closed)
+    readonly property list<NotifData> notClosed: list.filter(n => !n.closed && !n.isTransient)
     readonly property list<NotifData> popups: list.filter(n => n.popup)
     property alias dnd: props.dnd
 
@@ -75,6 +75,7 @@ Singleton {
                     expireTimeout: n.expireTimeout,
                     urgency: n.urgency,
                     resident: n.resident,
+                    transient: n.isTransient,
                     hasActionIcons: n.hasActionIcons,
                     actions: n.actions
                 }))))
