@@ -149,10 +149,15 @@ Searcher {
             return path;
         }
         if (Images.isVideo(path)) {
-            const dummy = root.thumbnailVersion;
+            const dummy = root.thumbnailVersion; // re-run this binding once a pending thumbnail finishes
             const thumbPath = `${Paths.cache}/wallpapers/${root.pathHash(path)}/first_frame.png`;
+            if (CUtils.fileExists(thumbPath))
+                return thumbPath;
+            // Return a different string than thumbPath while pending: QML only
+            // reloads Image.source when the bound value actually changes, and
+            // thumbPath is identical before/after generation finishes.
             root.ensureVideoThumbnail(path, thumbPath);
-            return thumbPath;
+            return root.fallback;
         }
         return path;
     }
