@@ -150,11 +150,22 @@ Searcher {
         }
         if (Images.isVideo(path)) {
             const dummy = root.thumbnailVersion;
-            const thumbPath = `${Paths.cache}/wallpapers/${CUtils.sha256(path)}/first_frame.png`;
+            const thumbPath = `${Paths.cache}/wallpapers/${root.pathHash(path)}/first_frame.png`;
             root.ensureVideoThumbnail(path, thumbPath);
             return thumbPath;
         }
         return path;
+    }
+
+    // CUtils.sha256 hashes file contents (reads the whole file synchronously),
+    // which freezes the shell when hashing many large videos at once just to
+    // build a cache key. A DJB2 hash of the path string is enough here.
+    function pathHash(str: string): string {
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+        }
+        return hash.toString(16);
     }
 
     property int thumbnailVersion: 0
