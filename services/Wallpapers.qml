@@ -149,9 +149,26 @@ Searcher {
             return path;
         }
         if (Images.isVideo(path)) {
-            return `${Paths.cache}/wallpapers/${CUtils.sha256(path)}/first_frame.png`;
+            const dummy = root.thumbnailVersion;
+            const thumbPath = `${Paths.cache}/wallpapers/${CUtils.sha256(path)}/first_frame.png`;
+            root.ensureVideoThumbnail(path, thumbPath);
+            return thumbPath;
         }
         return path;
+    }
+
+    property int thumbnailVersion: 0
+    property var pendingThumbnails: ({})
+
+    function ensureVideoThumbnail(path: string, thumbPath: string): void {
+        if (CUtils.fileExists(thumbPath) || root.pendingThumbnails[path])
+            return;
+        root.pendingThumbnails[path] = true;
+        thumbnailGenerator.createObject(root, {
+            videoPath: path,
+            outputPath: thumbPath,
+            outputDir: thumbPath.slice(0, thumbPath.lastIndexOf("/"))
+        });
     }
 
     onPreviewColourLockChanged: {
@@ -262,6 +279,26 @@ Searcher {
             onStreamFinished: {
                 Colours.load(text, true);
                 Colours.showPreview = true;
+            }
+        }
+    }
+
+    Component {
+        id: thumbnailGenerator
+
+        Process {
+            id: proc
+
+            required property string videoPath
+            required property string outputPath
+            required property string outputDir
+
+            running: true
+            command: ["sh", "-c", "mkdir -p \"$1\" && ffmpeg -y -loglevel error -i \"$2\" -vframes 1 -vf scale=512:-1 \"$3\"", "--", outputDir, videoPath, outputPath]
+            onExited: {
+                delete root.pendingThumbnails[videoPath];
+                root.thumbnailVersion++;
+                proc.destroy();
             }
         }
     }
