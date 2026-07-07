@@ -34,6 +34,11 @@ public:
     Q_INVOKABLE static bool fileExists(const QString& path);
     Q_INVOKABLE static QString readFile(const QString& path);
 
+    // Returns the settings search index JSON, baked into the plugin binary at
+    // build time so it lives with the compiled module rather than in a
+    // user-editable config file.
+    Q_INVOKABLE static QString settingsIndex();
+
     Q_INVOKABLE static QQuickItem* findChild(QQuickItem* root, const QString& name);
     Q_INVOKABLE static QList<QQuickItem*> findChildren(QQuickItem* root, const QString& name);
     Q_INVOKABLE static QList<QQuickItem*> findChildrenMatching(QQuickItem* root, const QString& pattern);

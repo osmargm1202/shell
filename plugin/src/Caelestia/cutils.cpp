@@ -173,6 +173,15 @@ qreal CUtils::clamp(qreal value, qreal min, qreal max) {
     return qBound(min, value, max);
 }
 
+QString CUtils::settingsIndex() {
+    QFile file(QStringLiteral(":/qt/qml/Caelestia/settings-index.json"));
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCWarning(lcCUtils) << "Failed to open embedded settings index";
+        return QString();
+    }
+    return QString::fromUtf8(file.readAll());
+}
+
 namespace {
 
 // DFS over the visual item tree (childItems), returning the first descendant matching the predicate. Unlike

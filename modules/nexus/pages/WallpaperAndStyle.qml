@@ -213,6 +213,7 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
+            settingAnchor: "style-display-wallpaper"
             text: qsTr("Display wallpaper")
             checked: Config.background.wallpaperEnabled
             onToggled: GlobalConfig.background.wallpaperEnabled = checked
@@ -297,7 +298,9 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
+            settingAnchor: "style-transparency"
             text: qsTr("Transparency")
+            subtext: qsTr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
             onToggled: {
                 GlobalConfig.appearance.transparency.enabled = checked;
@@ -330,6 +333,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
             last: true
+            settingAnchor: "style-dark-theme"
             text: qsTr("Dark theme")
             checked: !Colours.light
             onToggled: Colours.setMode(checked ? "dark" : "light")
