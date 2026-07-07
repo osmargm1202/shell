@@ -35,6 +35,11 @@ Searcher {
                 if (!cats.includes(cat)) cats.push(cat);
                 continue;
             }
+            if (p === Paths.videowallsdir || p.startsWith(Paths.videowallsdir + "/")) {
+                let cat = "Videos";
+                if (!cats.includes(cat)) cats.push(cat);
+                continue;
+            }
             if (p !== baseDir) {
                 let cat = p.slice(baseDir.length + 1);
                 if (cat.includes("/")) cat = cat.slice(0, cat.indexOf("/"));
@@ -57,6 +62,12 @@ Searcher {
                 grp[cat].push(w);
                 continue;
             }
+            if (p === Paths.videowallsdir || p.startsWith(Paths.videowallsdir + "/")) {
+                let cat = "Videos";
+                if (!grp[cat]) grp[cat] = [];
+                grp[cat].push(w);
+                continue;
+            }
             if (p === baseDir) {
                 grp["Main"].push(w);
             } else {
@@ -72,6 +83,9 @@ Searcher {
     function getCategoryFor(w: FileSystemEntry): string {
         if (w.parentDir.includes("steamapps/workshop/content/431960")) {
             return "Wallpaper Engine";
+        }
+        if (w.parentDir === Paths.videowallsdir || w.parentDir.startsWith(Paths.videowallsdir + "/")) {
+            return "Videos";
         }
         let category = w.parentDir.slice(Paths.wallsdir.length + 1);
         if (category.includes("/"))
@@ -197,6 +211,9 @@ Searcher {
         for (let i = 0; i < weWallpapers.entries.length; i++) {
             arr.push(weWallpapers.entries[i]);
         }
+        for (let i = 0; i < videoWallpapers.entries.length; i++) {
+            arr.push(videoWallpapers.entries[i]);
+        }
         root.list = arr;
     }
 
@@ -225,6 +242,15 @@ Searcher {
         path: Quickshell.env("HOME") + "/.local/share/Steam/steamapps/workshop/content/431960"
         filter: FileSystemModel.Files
         nameFilters: ["project.json"]
+        onEntriesChanged: root.updateCombinedList()
+    }
+
+    FileSystemModel {
+        id: videoWallpapers
+        recursive: true
+        path: Paths.videowallsdir
+        filter: FileSystemModel.Files
+        nameFilters: Images.validVideoExtensions.map(e => `*.${e}`)
         onEntriesChanged: root.updateCombinedList()
     }
 
