@@ -1,41 +1,36 @@
 <h1 align=center>caelestia-shell</h1>
 
-<!-- test pkgit -->
-
 <div align=center>
 
-![GitHub last commit](https://img.shields.io/github/last-commit/dim-ghub/caelestia-shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
-![GitHub Repo stars](https://img.shields.io/github/stars/dim-ghub/caelestia-shell?style=for-the-badge&labelColor=101418&color=b9c8da)
-![GitHub repo size](https://img.shields.io/github/repo-size/dim-ghub/caelestia-shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
-[![Discord invite](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FBGDCFCmMBk%3Fwith_counts%3Dtrue&query=approximate_member_count&style=for-the-badge&logo=discord&logoColor=ffffff&label=discord&labelColor=101418&color=96f1f1&link=https%3A%2F%2Fdiscord.gg%2FBGDCFCmMBk)](https://discord.gg/BGDCFCmMBk)
+![GitHub last commit](https://img.shields.io/github/last-commit/osmargm1202/shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
+![GitHub repo size](https://img.shields.io/github/repo-size/osmargm1202/shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
 
 </div>
 
 > [!NOTE]
-> This is a fork of the official [caelestia-shell](https://github.com/caelestia-dots/shell) with additional features. All new features are listed below.
+> This is a fork building toward a unified `caelestia-shell` that consolidates the best ideas scattered
+> across the community's many forks, on top of one base, instead of living with just one variant.
+> Built on [dim-ghub/caelestia-shell](https://github.com/dim-ghub/caelestia-shell), itself a fork of the
+> original [caelestia-dots/shell](https://github.com/caelestia-dots/shell) by
+> [@soramanew](https://github.com/soramanew).
 
-https://github.com/user-attachments/assets/0840f496-575c-4ca6-83a8-87bb01a85c5f
+<!-- Demo video: coming soon -->
 
-## Fork Features
+## About this fork
 
-This fork adds the following features on top of the official shell:
+Features are ported in one at a time, sourced directly from other community forks where the idea
+already exists and works, instead of rewriting things from scratch. Implementation work is AI-assisted.
 
-- **Launchers**: Emoji Picker, Clipboard History, Window Switcher, and Hyprland Keybinds.
-- **Wallpapers**: GIF/video support with auto-pause, plus Wallhaven integration.
-- **Bad Apple Easter Egg**: A custom shader effect that plays Bad Apple directly through the shell's UI material by masking the background and preserving the shell's native translucent blur and shadow effects.
-- **Games**: Playable Chrome Dino runner embedded in the notification dock.
-- **Dashboard**: Developer console terminal tab with history and autocomplete.
-- **Bar**: MacOS-style app dock, Material workspace icons, DND toggle, and a live drag-and-drop components editor.
-- **Desktop**: Floating lyrics, Shimeji pets, dynamic wallpaper recoloring, and Bezel Mode.
-- **Lock Screen**: Configurable auto-lock on startup (`lockOnStartup`), redesigned profile and clock layout, and improved forecast UI.
-- **Hyprland**: Full support for the new Lua-based window focus and dispatching commands (`hl.dsp`).
+This fork currently inherits everything from `dim-ghub/caelestia-shell` (GIF/video wallpapers with
+Wallhaven integration, extra launchers, redesigned dock and dashboard, and more — see its
+[README](https://github.com/dim-ghub/caelestia-shell) for the full list). Additional features being
+pulled in from other forks will be listed here as they land.
 
 ## Installation
 
 > [!NOTE]
 > This repo is for the desktop shell of the caelestia dots. If you want installation instructions
 > for the entire dots, head to [the main repo](https://github.com/caelestia-dots/caelestia) instead.
-> This fork is available at [dim-ghub/caelestia-shell](https://github.com/dim-ghub/caelestia-shell).
 
 ### Arch Linux / Manual (this fork)
 
@@ -71,17 +66,17 @@ To install the shell, first install the `pkgit` package manager (available on th
 Then you can simply install the shell directly from GitHub without cloning it:
 
 ```sh
-pkgit -i https://github.com/dim-ghub/caelestia-shell
+pkgit -i https://github.com/osmargm1202/shell
 ```
 
 > [!TIP]
-> You can also use `pkgit -qi https://github.com/dim-ghub/caelestia-shell` for a quiet installation.
+> You can also use `pkgit -qi https://github.com/osmargm1202/shell` for a quiet installation.
 
 If you prefer to clone and install it manually:
 
 ```sh
 cd $XDG_CONFIG_HOME/quickshell
-git clone https://github.com/dim-ghub/caelestia-shell.git caelestia
+git clone https://github.com/osmargm1202/shell.git caelestia
 cd caelestia
 pkgit -i .
 ```
@@ -91,7 +86,7 @@ pkgit -i .
 You can run the shell directly via `nix run`:
 
 ```sh
-nix run github:caelestia-dots/shell
+nix run github:osmargm1202/shell
 ```
 
 Or add it to your system configuration:
@@ -102,7 +97,7 @@ Or add it to your system configuration:
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     caelestia-shell = {
-      url = "github:caelestia-dots/shell";
+      url = "github:osmargm1202/shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -810,13 +805,13 @@ For example, to disable the bar on DP-1:
         },
         "workspaces": {
             "activeIndicator": true,
-            "activeLabel": " \udb82\udfaf",
+            "activeLabel": " 󰮯",
             "activeTrail": false,
             "capitalisation": "preserve",
-            "label": "\uf444 ",
+            "label": " ",
             "maxWindowIcons": 5,
             "occupiedBg": false,
-            "occupiedLabel": " \udb82\udfaf",
+            "occupiedLabel": " 󰮯",
             "perMonitorWorkspaces": true,
             "showWindows": true,
             "showWindowsOnSpecialWorkspaces": true,
@@ -1339,11 +1334,6 @@ The module automatically adds Caelestia shell to the path with **full functional
 
 ## FAQ
 
-### Need help or support?
-
-You can join the community Discord server for assistance and discussion:
-https://discord.gg/BGDCFCmMBk
-
 ### My screen is flickering, help pls!
 
 Try disabling VRR in the hyprland config. You can do this by adding the following to `~/.config/caelestia/hypr-user.conf`:
@@ -1368,13 +1358,12 @@ You can add your custom hyprland configs to `~/.config/caelestia/hypr-user.conf`
 
 ### I want to make my own changes to other stuff!
 
-See the [manual installation](https://github.com/caelestia-dots/shell?tab=readme-ov-file#manual-installation) section
-for the corresponding repo.
+See the [manual installation](#arch-linux--manual-this-fork) section above.
 
 ### I want to disable XXX feature!
 
-Please read the [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#configuring) section in the readme.
-If there is no corresponding option, make feature request.
+Please read the [configuring](#configuring) section in the readme.
+If there is no corresponding option, make a feature request via GitHub issues.
 
 ### How do I make my colour scheme change with my wallpaper?
 
@@ -1394,25 +1383,5 @@ the launcher only shows an odd number of wallpapers at one time. If you only hav
 
 ## Credits
 
-Thanks to the Hyprland discord community (especially the homies in #rice-discussion) for all the help and suggestions
-for improving these dots!
-
-A special thanks to [@outfoxxed](https://github.com/outfoxxed) for making Quickshell and the effort put into fixing issues
-and implementing various feature requests.
-
-Another special thanks to [@end_4](https://github.com/end-4) for his [config](https://github.com/end-4/dots-hyprland)
-which helped me a lot with learning how to use Quickshell.
-
-Finally another thank you to all the configs I took inspiration from (only one for now):
-
--   [Axenide/Ax-Shell](https://github.com/Axenide/Ax-Shell)
-
-## Stonks 📈
-
-<a href="https://www.star-history.com/#caelestia-dots/shell&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dim-ghub/caelestia-shell&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
- </picture>
-</a>
+Original project: [caelestia-dots/shell](https://github.com/caelestia-dots/shell), created by
+[@soramanew](https://github.com/soramanew).
