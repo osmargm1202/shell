@@ -159,16 +159,31 @@ Searcher {
 
     property int thumbnailVersion: 0
     property var pendingThumbnails: ({})
+    property var thumbnailQueue: []
+    property int activeThumbnailJobs: 0
+    readonly property int maxConcurrentThumbnailJobs: 2
 
     function ensureVideoThumbnail(path: string, thumbPath: string): void {
         if (CUtils.fileExists(thumbPath) || root.pendingThumbnails[path])
             return;
         root.pendingThumbnails[path] = true;
-        thumbnailGenerator.createObject(root, {
+        root.thumbnailQueue.push({
             videoPath: path,
-            outputPath: thumbPath,
-            outputDir: thumbPath.slice(0, thumbPath.lastIndexOf("/"))
+            outputPath: thumbPath
         });
+        root.processThumbnailQueue();
+    }
+
+    function processThumbnailQueue(): void {
+        while (root.activeThumbnailJobs < root.maxConcurrentThumbnailJobs && root.thumbnailQueue.length > 0) {
+            const job = root.thumbnailQueue.shift();
+            root.activeThumbnailJobs++;
+            thumbnailGenerator.createObject(root, {
+                videoPath: job.videoPath,
+                outputPath: job.outputPath,
+                outputDir: job.outputPath.slice(0, job.outputPath.lastIndexOf("/"))
+            });
+        }
     }
 
     onPreviewColourLockChanged: {
@@ -294,10 +309,12 @@ Searcher {
             required property string outputDir
 
             running: true
-            command: ["sh", "-c", "mkdir -p \"$1\" && ffmpeg -y -loglevel error -i \"$2\" -vframes 1 -vf scale=512:-1 \"$3\"", "--", outputDir, videoPath, outputPath]
+            command: ["nice", "-n", "19", "ionice", "-c3", "sh", "-c", "mkdir -p \"$1\" && ffmpeg -y -loglevel error -threads 1 -i \"$2\" -vframes 1 -vf scale=512:-1 \"$3\"", "--", outputDir, videoPath, outputPath]
             onExited: {
                 delete root.pendingThumbnails[videoPath];
+                root.activeThumbnailJobs--;
                 root.thumbnailVersion++;
+                root.processThumbnailQueue();
                 proc.destroy();
             }
         }
