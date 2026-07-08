@@ -10,7 +10,7 @@
     };
 
     caelestia-cli = {
-      url = "github:osmargm1202/caelestia-cli/feat/video-wallpaper-support";
+      url = "github:osmargm1202/caelestia-cli";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.caelestia-shell.follows = "";
     };
