@@ -27,6 +27,7 @@
   cmake,
   ninja,
   pkg-config,
+  python3,
   caelestia-cli,
   m3shapes,
   debug ? false,
@@ -92,10 +93,10 @@
     name = "caelestia-qml-plugin${lib.optionalString debug "-debug"}";
     src = lib.fileset.toSource {
       root = ./..;
-      fileset = lib.fileset.union ./../CMakeLists.txt ./../plugin;
+      fileset = lib.fileset.unions [./../CMakeLists.txt ./../plugin ./../scripts ./../modules/nexus];
     };
 
-    nativeBuildInputs = [cmake ninja pkg-config];
+    nativeBuildInputs = [cmake ninja pkg-config python3];
     buildInputs = [qt6.qtbase qt6.qtdeclarative qt6.qtshadertools libqalculate pipewire aubio libcava fftw lm_sensors];
 
     dontWrapQtApps = true;
@@ -133,7 +134,7 @@ in
     pname = "caelestia-shell${lib.optionalString debug "-debug"}";
     src = ./..;
 
-    nativeBuildInputs = [cmake ninja makeWrapper qt6.wrapQtAppsHook];
+    nativeBuildInputs = [cmake ninja makeWrapper qt6.wrapQtAppsHook python3];
     buildInputs = [quickshell extras plugin m3shapesModule xkeyboard-config qt6.qtbase];
     propagatedBuildInputs = runtimeDeps;
 

@@ -78,7 +78,6 @@ Item {
             anchors.fill: parent
             path: Wallpapers.getThumbnailPath(root.modelData.path)
             smooth: !root.PathView.view.moving
-            visible: !Images.isVideo(root.modelData.name)
             sourceSize: {
                 const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                 return Qt.size(image.implicitWidth * dpr, image.implicitHeight * dpr);

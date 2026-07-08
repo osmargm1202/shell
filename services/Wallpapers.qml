@@ -35,6 +35,11 @@ Searcher {
                 if (!cats.includes(cat)) cats.push(cat);
                 continue;
             }
+            if (p === Paths.videowallsdir || p.startsWith(Paths.videowallsdir + "/")) {
+                let cat = "Videos";
+                if (!cats.includes(cat)) cats.push(cat);
+                continue;
+            }
             if (p !== baseDir) {
                 let cat = p.slice(baseDir.length + 1);
                 if (cat.includes("/")) cat = cat.slice(0, cat.indexOf("/"));
@@ -57,6 +62,12 @@ Searcher {
                 grp[cat].push(w);
                 continue;
             }
+            if (p === Paths.videowallsdir || p.startsWith(Paths.videowallsdir + "/")) {
+                let cat = "Videos";
+                if (!grp[cat]) grp[cat] = [];
+                grp[cat].push(w);
+                continue;
+            }
             if (p === baseDir) {
                 grp["Main"].push(w);
             } else {
@@ -72,6 +83,9 @@ Searcher {
     function getCategoryFor(w: FileSystemEntry): string {
         if (w.parentDir.includes("steamapps/workshop/content/431960")) {
             return "Wallpaper Engine";
+        }
+        if (w.parentDir === Paths.videowallsdir || w.parentDir.startsWith(Paths.videowallsdir + "/")) {
+            return "Videos";
         }
         let category = w.parentDir.slice(Paths.wallsdir.length + 1);
         if (category.includes("/"))
@@ -135,9 +149,57 @@ Searcher {
             return path;
         }
         if (Images.isVideo(path)) {
-            return `${Paths.cache}/wallpapers/${CUtils.sha256(path)}/first_frame.png`;
+            const dummy = root.thumbnailVersion; // re-run this binding once a pending thumbnail finishes
+            const thumbPath = `${Paths.cache}/wallpapers/${root.pathHash(path)}/first_frame.png`;
+            if (CUtils.fileExists(thumbPath))
+                return thumbPath;
+            // Return a different string than thumbPath while pending: QML only
+            // reloads Image.source when the bound value actually changes, and
+            // thumbPath is identical before/after generation finishes.
+            root.ensureVideoThumbnail(path, thumbPath);
+            return root.fallback;
         }
         return path;
+    }
+
+    // CUtils.sha256 hashes file contents (reads the whole file synchronously),
+    // which freezes the shell when hashing many large videos at once just to
+    // build a cache key. A DJB2 hash of the path string is enough here.
+    function pathHash(str: string): string {
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+        }
+        return hash.toString(16);
+    }
+
+    property int thumbnailVersion: 0
+    property var pendingThumbnails: ({})
+    property var thumbnailQueue: []
+    property int activeThumbnailJobs: 0
+    readonly property int maxConcurrentThumbnailJobs: 2
+
+    function ensureVideoThumbnail(path: string, thumbPath: string): void {
+        if (CUtils.fileExists(thumbPath) || root.pendingThumbnails[path])
+            return;
+        root.pendingThumbnails[path] = true;
+        root.thumbnailQueue.push({
+            videoPath: path,
+            outputPath: thumbPath
+        });
+        root.processThumbnailQueue();
+    }
+
+    function processThumbnailQueue(): void {
+        while (root.activeThumbnailJobs < root.maxConcurrentThumbnailJobs && root.thumbnailQueue.length > 0) {
+            const job = root.thumbnailQueue.shift();
+            root.activeThumbnailJobs++;
+            thumbnailGenerator.createObject(root, {
+                videoPath: job.videoPath,
+                outputPath: job.outputPath,
+                outputDir: job.outputPath.slice(0, job.outputPath.lastIndexOf("/"))
+            });
+        }
     }
 
     onPreviewColourLockChanged: {
@@ -197,6 +259,9 @@ Searcher {
         for (let i = 0; i < weWallpapers.entries.length; i++) {
             arr.push(weWallpapers.entries[i]);
         }
+        for (let i = 0; i < videoWallpapers.entries.length; i++) {
+            arr.push(videoWallpapers.entries[i]);
+        }
         root.list = arr;
     }
 
@@ -228,6 +293,15 @@ Searcher {
         onEntriesChanged: root.updateCombinedList()
     }
 
+    FileSystemModel {
+        id: videoWallpapers
+        recursive: true
+        path: Paths.videowallsdir
+        filter: FileSystemModel.Files
+        nameFilters: Images.validVideoExtensions.map(e => `*.${e}`)
+        onEntriesChanged: root.updateCombinedList()
+    }
+
     Process {
         id: getPreviewColoursProc
 
@@ -236,6 +310,28 @@ Searcher {
             onStreamFinished: {
                 Colours.load(text, true);
                 Colours.showPreview = true;
+            }
+        }
+    }
+
+    Component {
+        id: thumbnailGenerator
+
+        Process {
+            id: proc
+
+            required property string videoPath
+            required property string outputPath
+            required property string outputDir
+
+            running: true
+            command: ["nice", "-n", "19", "ionice", "-c3", "sh", "-c", "mkdir -p \"$1\" && ffmpeg -y -loglevel error -threads 1 -i \"$2\" -vframes 1 -vf scale=512:-1 \"$3\"", "--", outputDir, videoPath, outputPath]
+            onExited: {
+                delete root.pendingThumbnails[videoPath];
+                root.activeThumbnailJobs--;
+                root.thumbnailVersion++;
+                root.processThumbnailQueue();
+                proc.destroy();
             }
         }
     }
