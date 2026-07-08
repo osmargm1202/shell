@@ -45,9 +45,10 @@ Slider {
             anchors.right: parent.right
             // Same y-mapping as root.handle.y (subtracting the *handle's*
             // height, not this rect's own), evaluated at markValue instead of
-            // the live value, so it lines up with where the handle would
-            // actually sit at that value.
-            y: (root.markValue - root.from) / (root.to - root.from) * (root.availableHeight - root.handle.height)
+            // the live value. Qt's Slider inverts visualPosition for Vertical
+            // orientation (1 - position) so high values land at the top; this
+            // must invert the same way or it ends up mirrored.
+            y: (1 - (root.markValue - root.from) / (root.to - root.from)) * (root.availableHeight - root.handle.height)
 
             implicitHeight: 2
             radius: 0
