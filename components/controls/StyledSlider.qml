@@ -25,6 +25,12 @@ Slider {
     property real pos: visualPosition
     property real filledWidth
 
+    // Tick mark shown along the track at this value (e.g. 100% when `to`
+    // allows going above it) so raising the max doesn't hide where "normal" is.
+    property real markValue: 1.0
+    readonly property bool showMark: root.to > root.from && root.markValue > root.from && root.markValue < root.to
+    readonly property real markX: (root.width - handle.implicitWidth - handle.anchors.leftMargin) * ((root.markValue - root.from) / (root.to - root.from))
+
     signal interaction(v: real)
     signal released(v: real)
 
@@ -112,6 +118,19 @@ Slider {
                 bottomRightRadius: Tokens.rounding.extraSmall / 2
                 color: root.fgColour
             }
+        }
+
+        StyledRect {
+            visible: root.showMark
+            z: 1
+
+            x: root.markX
+            anchors.verticalCenter: parent.verticalCenter
+
+            implicitWidth: 2
+            implicitHeight: parent.height
+            radius: 0
+            color: Colours.palette.m3outline
         }
 
         Component {

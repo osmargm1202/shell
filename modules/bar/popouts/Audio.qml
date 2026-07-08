@@ -132,8 +132,38 @@ ColumnLayout {
             anchors.right: parent.right
             implicitHeight: parent.implicitHeight
 
+            to: GlobalConfig.services.maxVolume
             value: Audio.volume
             onInteraction: v => Audio.setVolume(v)
+            onReleased: v => Audio.playEffectTick()
+        }
+    }
+
+    StyledText {
+        Layout.topMargin: Tokens.spacing.medium
+        text: qsTr("Microphone (%1)").arg(Audio.sourceMuted ? qsTr("Muted") : `${Math.round(Audio.sourceVolume * 100)}%`)
+        font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+    }
+
+    CustomMouseArea {
+        Layout.fillWidth: true
+        implicitHeight: Tokens.padding.medium * 3
+
+        onWheel: event => {
+            if (event.angleDelta.y > 0)
+                Audio.incrementSourceVolume();
+            else if (event.angleDelta.y < 0)
+                Audio.decrementSourceVolume();
+        }
+
+        StyledSlider {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            implicitHeight: parent.implicitHeight
+
+            to: GlobalConfig.services.maxVolume
+            value: Audio.sourceVolume
+            onInteraction: v => Audio.setSourceVolume(v)
             onReleased: v => Audio.playEffectTick()
         }
     }
