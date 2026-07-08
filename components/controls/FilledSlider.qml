@@ -13,11 +13,6 @@ Slider {
     property bool initialized
     property bool enableIconTap: false
 
-    // Tick mark shown along the track at this value (e.g. 100% when `to`
-    // allows going above it) so raising the max doesn't hide where "normal" is.
-    property real markValue: 1.0
-    readonly property bool showMark: root.to > root.from && root.markValue > root.from && root.markValue < root.to
-
     signal iconTapped
 
     orientation: Qt.Vertical
@@ -35,24 +30,6 @@ Slider {
 
             color: Colours.palette.m3secondary
             radius: parent.radius
-        }
-
-        StyledRect {
-            visible: root.showMark
-            z: 1
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-            // Same y-mapping as root.handle.y (subtracting the *handle's*
-            // height, not this rect's own), evaluated at markValue instead of
-            // the live value. Qt's Slider inverts visualPosition for Vertical
-            // orientation (1 - position) so high values land at the top; this
-            // must invert the same way or it ends up mirrored.
-            y: (1 - (root.markValue - root.from) / (root.to - root.from)) * (root.availableHeight - root.handle.height)
-
-            implicitHeight: 2
-            radius: 0
-            color: Colours.palette.m3outline
         }
     }
 

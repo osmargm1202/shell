@@ -1,5 +1,12 @@
 # Audio slider parity design
 
+**Update 2026-07-08:** item 4 (100% tick mark) was implemented, went through two
+failed attempts at getting the vertical-slider pixel math right (subtracted
+the wrong height, then missed Qt's `1 - position` inversion for Vertical
+orientation), and was ultimately reverted at the user's request rather than
+sink more time into it. Items 1–3 (OSD mic default, bar popout mic slider,
+maxVolume cap) shipped and are confirmed working.
+
 ## Problem
 
 Volume/mic/brightness controls are inconsistent across the three surfaces that expose them:
