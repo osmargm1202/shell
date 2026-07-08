@@ -43,10 +43,11 @@ Slider {
 
             anchors.left: parent.left
             anchors.right: parent.right
-            // Same y-mapping as root.handle.y, evaluated at markValue instead
-            // of the live value, so it lines up with the track regardless of
-            // which end of the vertical fill represents the higher value.
-            y: (root.markValue - root.from) / (root.to - root.from) * (root.availableHeight - height)
+            // Same y-mapping as root.handle.y (subtracting the *handle's*
+            // height, not this rect's own), evaluated at markValue instead of
+            // the live value, so it lines up with where the handle would
+            // actually sit at that value.
+            y: (root.markValue - root.from) / (root.to - root.from) * (root.availableHeight - root.handle.height)
 
             implicitHeight: 2
             radius: 0
