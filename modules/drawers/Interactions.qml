@@ -282,10 +282,24 @@ CustomMouseArea {
 
         // Show popouts on hover
         if (inBarArea(x, y)) {
+            dockHoverHideTimer.stop();
             bar.checkPopout(isBarHorizontal ? x : y);
         } else if ((!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) && !inLeftPanel(panels.popoutsWrapper, x, y)) {
-            popouts.hasCurrent = false;
+            // Dock popouts get a grace period before closing: there's a real
+            // pixel gap between the dock icon and the preview card above it,
+            // and hiding instantly on that gap makes it near-impossible to
+            // move the mouse into the popout itself.
+            if (popouts.hasCurrent && (popouts.currentName === "dockhover" || popouts.currentName === "dockcontext")) {
+                if (!dockHoverHideTimer.running)
+                    dockHoverHideTimer.start();
+            } else {
+                dockHoverHideTimer.stop();
+                popouts.hasCurrent = false;
+            }
             bar.closeTray();
+        } else {
+            // Inside the popout panel itself; cancel any pending dock hide.
+            dockHoverHideTimer.stop();
         }
 
         // Show utilities on hover
@@ -371,5 +385,15 @@ CustomMouseArea {
         }
 
         target: root.screenState
+    }
+
+    Timer {
+        id: dockHoverHideTimer
+
+        interval: Config.bar.dock.hoverHideDelay ?? 300
+        onTriggered: {
+            root.popouts.hasCurrent = false;
+            root.bar.closeTray();
+        }
     }
 }

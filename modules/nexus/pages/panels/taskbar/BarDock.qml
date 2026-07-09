@@ -64,11 +64,33 @@ PageBase {
 
         ToggleRow {
             Layout.fillWidth: true
-            last: true
             text: qsTr("Recolour icons")
             subtext: qsTr("Recolour application icons using the system theme")
             checked: Config.bar.dock.recolourIcons
             onToggled: GlobalConfig.bar.dock.recolourIcons = checked
+        }
+
+        StepperRow {
+            Layout.fillWidth: true
+            label: qsTr("Hover hide delay")
+            subtext: qsTr("How long the app preview stays open after leaving the dock icon (ms)")
+            value: Config.bar.dock.hoverHideDelay
+            from: 0
+            to: 1000
+            stepSize: 50
+            onMoved: v => GlobalConfig.bar.dock.hoverHideDelay = v
+        }
+
+        StepperRow {
+            Layout.fillWidth: true
+            last: true
+            label: qsTr("Icon magnification on hover")
+            subtext: qsTr("How much dock icons grow when hovered (%)")
+            value: Math.round(Config.bar.dock.hoverIconScale * 100)
+            from: 100
+            to: 200
+            stepSize: 5
+            onMoved: v => GlobalConfig.bar.dock.hoverIconScale = v / 100
         }
     }
 }

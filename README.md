@@ -721,6 +721,8 @@ For example, to disable the bar on DP-1:
             "showIcon": true
         },
         "dock": {
+            "hoverHideDelay": 300,
+            "hoverIconScale": 1.0,
             "monitorCenter": true,
             "recolourIcons": false
         },

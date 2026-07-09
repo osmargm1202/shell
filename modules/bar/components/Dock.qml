@@ -313,7 +313,12 @@ Item {
                         }
                         asynchronous: true
                         visible: !(Config.bar.dock.recolourIcons ?? false)
-                        
+                        scale: stateLayer.containsMouse ? (Config.bar.dock.hoverIconScale ?? 1.0) : 1.0
+
+                        Behavior on scale {
+                            Anim { type: Anim.DefaultSpatial }
+                        }
+
                         SequentialAnimation {
                             id: bounceAnim
 
@@ -328,6 +333,11 @@ Item {
                         colour: Colours.palette.m3secondary
                         layer.enabled: true
                         visible: Config.bar.dock.recolourIcons ?? false
+                        scale: stateLayer.containsMouse ? (Config.bar.dock.hoverIconScale ?? 1.0) : 1.0
+
+                        Behavior on scale {
+                            Anim { type: Anim.DefaultSpatial }
+                        }
                     }
 
                     Loader {

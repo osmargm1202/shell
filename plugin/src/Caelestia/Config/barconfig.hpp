@@ -134,6 +134,8 @@ class BarDock : public ConfigObject {
 
     CONFIG_PROPERTY(bool, monitorCenter, true)
     CONFIG_PROPERTY(bool, recolourIcons, false)
+    CONFIG_PROPERTY(int, hoverHideDelay, 300)
+    CONFIG_PROPERTY(qreal, hoverIconScale, 1.0)
 
 public:
     explicit BarDock(QObject* parent = nullptr)
