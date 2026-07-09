@@ -38,11 +38,23 @@ Singleton {
     }
 
     function clear(): void {
-        const toClose = [];
-        for (let i = 0; i < root.list.length; i++)
-            toClose.push(root.list[i]);
-        for (let i = 0; i < toClose.length; i++)
-            toClose[i].close();
+        // Batch removal: closing one-by-one reassigns the whole list per
+        // notification (O(n^2) model diffs), which freezes the shell when
+        // many notifications are pending.
+        const toClose = root.list.slice();
+        const remaining = [];
+        for (const n of toClose) {
+            n.closed = true;
+            if (n.locks.size > 0)
+                remaining.push(n);
+        }
+        root.list = remaining;
+        for (const n of toClose) {
+            if (n.locks.size === 0) {
+                n.notification?.dismiss();
+                n.destroy();
+            }
+        }
     }
 
     onDndChanged: {
@@ -76,7 +88,6 @@ Singleton {
                     urgency: n.urgency,
                     resident: n.resident,
                     transient: n.isTransient,
-                    key: n.key,
                     hasActionIcons: n.hasActionIcons,
                     actions: n.actions
                 }))))
@@ -108,29 +119,6 @@ Singleton {
                 popup: root.shouldShowPopup(),
                 notification: notif
             });
-
-            if (comp.key !== "")
-                for (const n of root.list.slice())
-                    if (n.key === comp.key) {
-                        n.popup = comp.popup;
-                        n.closed = comp.closed;
-                        n.notification = comp.notification;
-                        n.id = comp.id;
-                        n.summary = comp.summary;
-                        n.body = comp.body;
-                        n.appIcon = comp.appIcon;
-                        n.image = comp.image;
-                        n.expireTimeout = comp.expireTimeout;
-                        n.urgency = comp.urgency;
-                        n.resident = comp.resident;
-                        n.isTransient = comp.isTransient;
-                        n.key = comp.key;
-                        n.hasActionIcons = comp.hasActionIcons;
-                        n.actions = comp.actions;
-
-                        n.timer.restart();
-                        return;
-                    }
 
             root.list = [comp, ...root.list];
 
