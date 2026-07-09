@@ -47,6 +47,7 @@ Dependencies:
 -   [`fish`](https://github.com/fish-shell/fish-shell)
 -   [`aubio`](https://github.com/aubio/aubio)
 -   [`libpipewire`](https://pipewire.org)
+-   [`ffmpeg`](https://ffmpeg.org) - used to generate thumbnails for video wallpapers
 -   `glibc`
 -   `qt6-declarative`
 -   `gcc-libs`

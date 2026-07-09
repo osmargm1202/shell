@@ -14,6 +14,7 @@
   libqalculate,
   bash,
   hyprland,
+  ffmpeg,
   material-symbols,
   rubik,
   nerd-fonts,
@@ -48,6 +49,7 @@
       libqalculate
       bash
       hyprland
+      ffmpeg
     ]
     ++ extraRuntimeDeps
     ++ lib.optional withCli caelestia-cli;
