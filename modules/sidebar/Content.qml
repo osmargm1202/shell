@@ -26,6 +26,12 @@ Item {
     }
 
     Connections {
+        target: GlobalConfig.sidebar
+        function onEnableArchNewsChanged() { checkNewsTabs(); }
+        function onEnableNixosNewsChanged() { checkNewsTabs(); }
+    }
+
+    Connections {
         target: root.screenState
         function onSidebarChanged() {
             if (root.screenState.sidebar) {
@@ -40,6 +46,15 @@ Item {
             if (root.activeTab === "ai") {
                 root.activeTab = "notifications";
             }
+        }
+    }
+
+    function checkNewsTabs() {
+        if (!GlobalConfig.sidebar.enableArchNews && root.activeTab === "news") {
+            root.activeTab = "notifications";
+        }
+        if (!GlobalConfig.sidebar.enableNixosNews && root.activeTab === "nixosnews") {
+            root.activeTab = "notifications";
         }
     }
 
@@ -86,7 +101,13 @@ Item {
                                 if (GlobalConfig.ai.enableOllama) {
                                     tabs.push({ id: "ai", label: qsTr("AI Assistant"), icon: "smart_toy" });
                                 }
-                                tabs.push({ id: "news", label: qsTr("News"), icon: "newspaper" });
+                                tabs.push({ id: "notes", label: qsTr("Notes"), icon: "edit_note" });
+                                if (GlobalConfig.sidebar.enableArchNews) {
+                                    tabs.push({ id: "news", label: qsTr("Arch News"), icon: "newspaper" });
+                                }
+                                if (GlobalConfig.sidebar.enableNixosNews) {
+                                    tabs.push({ id: "nixosnews", label: qsTr("NixOS News"), icon: "newspaper" });
+                                }
                                 return tabs;
                             }
 
@@ -214,6 +235,18 @@ Item {
                         Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
                     }
 
+                    Notes {
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        x: root.activeTab === "notes" ? 0 : width
+                        opacity: root.activeTab === "notes" ? 1 : 0
+                        visible: opacity > 0
+
+                        Behavior on x { Anim { type: Anim.DefaultSpatial } }
+                        Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
+                    }
+
                     News {
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
@@ -221,7 +254,19 @@ Item {
                         x: root.activeTab === "news" ? 0 : width
                         opacity: root.activeTab === "news" ? 1 : 0
                         visible: opacity > 0
-                        
+
+                        Behavior on x { Anim { type: Anim.DefaultSpatial } }
+                        Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
+                    }
+
+                    NixosNews {
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        x: root.activeTab === "nixosnews" ? 0 : width
+                        opacity: root.activeTab === "nixosnews" ? 1 : 0
+                        visible: opacity > 0
+
                         Behavior on x { Anim { type: Anim.DefaultSpatial } }
                         Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
                     }

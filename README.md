@@ -48,6 +48,7 @@ Dependencies:
 -   [`aubio`](https://github.com/aubio/aubio)
 -   [`libpipewire`](https://pipewire.org)
 -   [`ffmpeg`](https://ffmpeg.org) - used to generate thumbnails for video wallpapers
+-   [`curl`](https://curl.se) - used to fetch the NixOS news (r/NixOS) sidebar feed
 -   `glibc`
 -   `qt6-declarative`
 -   `gcc-libs`
@@ -1218,10 +1219,12 @@ For example, to disable the bar on DP-1:
         "screenCounts": {}
     },
     "sidebar": {
+        "dragThreshold": 80,
+        "enableArchNews": false,
+        "enableNixosNews": false,
         "enabled": true,
-        "showOnHover": false,
         "minHoverThreshold": 200,
-        "dragThreshold": 80
+        "showOnHover": false
     },
     "utilities": {
         "enabled": true,

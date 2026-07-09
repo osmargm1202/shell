@@ -12,6 +12,8 @@ class SidebarConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, showOnHover, false)
     CONFIG_PROPERTY(int, minHoverThreshold, 200)
     CONFIG_PROPERTY(int, dragThreshold, 80)
+    CONFIG_PROPERTY(bool, enableArchNews, false)
+    CONFIG_PROPERTY(bool, enableNixosNews, false)
 
 public:
     explicit SidebarConfig(QObject* parent = nullptr)

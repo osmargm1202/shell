@@ -15,6 +15,7 @@
   bash,
   hyprland,
   ffmpeg,
+  curl,
   material-symbols,
   rubik,
   nerd-fonts,
@@ -50,6 +51,7 @@
       bash
       hyprland
       ffmpeg
+      curl
     ]
     ++ extraRuntimeDeps
     ++ lib.optional withCli caelestia-cli;

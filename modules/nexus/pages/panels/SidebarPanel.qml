@@ -70,5 +70,29 @@ PageBase {
             checked: GlobalConfig.ai.enableCelestialMode
             onToggled: GlobalConfig.ai.enableCelestialMode = checked
         }
+
+        // News tabs
+        SectionHeader {
+            text: qsTr("News")
+        }
+
+        ToggleRow {
+            Layout.fillWidth: true
+            first: true
+            text: qsTr("Arch Linux News")
+            subtext: qsTr("Show an Arch Linux News tab in the sidebar")
+            checked: GlobalConfig.sidebar.enableArchNews
+            onToggled: GlobalConfig.sidebar.enableArchNews = checked
+        }
+
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            Layout.fillWidth: true
+            last: true
+            text: qsTr("NixOS News")
+            subtext: qsTr("Show an r/NixOS tab in the sidebar")
+            checked: GlobalConfig.sidebar.enableNixosNews
+            onToggled: GlobalConfig.sidebar.enableNixosNews = checked
+        }
     }
 }
