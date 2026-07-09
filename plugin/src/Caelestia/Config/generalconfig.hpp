@@ -17,6 +17,7 @@ class GeneralApps : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(QStringList, audio, { u"pavucontrol"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, playback, { u"mpv"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, explorer, { u"thunar"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, screenshot, { u"swappy"_s })
 
 public:
     explicit GeneralApps(QObject* parent = nullptr)

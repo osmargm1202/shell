@@ -8,6 +8,8 @@ import Caelestia
 import qs.components
 import qs.components.effects
 import qs.services
+import qs.config
+import qs.utils
 
 MouseArea {
     id: root
@@ -76,6 +78,10 @@ MouseArea {
         const tmpfile = isSearch
             ? Qt.resolvedUrl("/tmp/caelestia-search.png")
             : Qt.resolvedUrl(`/tmp/caelestia-picker-${Quickshell.processId}-${Date.now()}.png`);
+
+        const imgpath = `${Paths.screenshotdir}/${Qt.formatDateTime(new Date(), "yyyy-MM-dd_hh-mm-ss")}.png`;
+        const imgfile = Qt.resolvedUrl(imgpath);
+
         CUtils.saveItem(screencopy, tmpfile, Qt.rect(Math.ceil(rsx), Math.ceil(rsy), Math.floor(sw), Math.floor(sh)), path => {
             if (isSearch) {
                 Quickshell.execDetached(["touch", "/tmp/caelestia-search.done"]);
@@ -83,7 +89,13 @@ MouseArea {
                 Quickshell.execDetached(["sh", "-c", "wl-copy --type image/png < " + path]);
                 Quickshell.execDetached(["notify-send", "-a", "caelestia-cli", "-i", path, "Screenshot taken", "Screenshot copied to clipboard"]);
             } else {
-                Quickshell.execDetached(["swappy", "-f", path]);
+                if (CUtils.copyFile(tmpfile, imgfile)) {
+                    Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-e", "-u", "low", "-h", `STRING:image-path:${imgpath}`, "Screenshot Taken", `Screenshot saved to ${Paths.shortenHome(imgpath)}`]);
+                    Quickshell.execDetached([...Config.general.apps.screenshot, "-f", imgpath]);
+                } else {
+                    Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "critical", "Unable to Save Screenshot", `Failed to save screenshot to ${Paths.shortenHome(imgpath)}`]);
+                    Quickshell.execDetached([...Config.general.apps.screenshot, "-f", path]);
+                }
             }
             Audio.playCameraClick();
             closeAnim.start();
@@ -132,7 +144,10 @@ MouseArea {
         if (closeAnim.running)
             return;
 
-        if (root.loader.freeze) {
+        if (root.loader.pickOnly) {
+            Quickshell.execDetached(["sh", "-c", `echo ${screen.x + rsx},${screen.y + rsy} ${sw}x${sh} &> /tmp/caelestia-picker-${Quickshell.processId}-coords`]);
+            closeAnim.start();
+        } else if (root.loader.freeze) {
             save();
         } else {
             overlay.visible = border.visible = false;

@@ -122,6 +122,10 @@ Singleton {
             return setFor("active", value);
         }
 
+        function list(): string {
+            return root.monitors.map(m => m.modelData.name).join("\n");
+        }
+
         // Handles brightness value like brightnessctl: 0.1, +0.1, 0.1-, 10%, +10%, 10%-
         function setFor(query: string, value: string): string {
             const monitor = root.getMonitor(query);

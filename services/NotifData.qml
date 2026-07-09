@@ -36,6 +36,7 @@ QtObject {
     property real expireTimeout: GlobalConfig.notifs.defaultExpireTimeout
     property int urgency: NotificationUrgency.Normal
     property bool resident
+    property bool isTransient
     property bool hasActionIcons
     property list<var> actions
 
@@ -54,8 +55,11 @@ QtObject {
         interval: notif.expireTimeout > 0 ? notif.expireTimeout : notif.hasFullscreen ? GlobalConfig.notifs.fullscreenExpireTimeout : GlobalConfig.notifs.defaultExpireTimeout
         onTriggered: {
             // Always expire if the active workspace has a fullscreen window
-            if (GlobalConfig.notifs.expire || notif.hasFullscreen)
+            if (notif.urgency !== NotificationUrgency.Critical && (GlobalConfig.notifs.expire || notif.hasFullscreen)) {
                 notif.popup = false;
+                if (notif.isTransient)
+                    notif.close();
+            }
         }
     }
 
@@ -147,6 +151,10 @@ QtObject {
             notif.resident = notif.notification.resident;
         }
 
+        function onTransientChanged(): void {
+            notif.isTransient = notif.notification.transient;
+        }
+
         function onHasActionIconsChanged(): void {
             notif.hasActionIcons = notif.notification.hasActionIcons;
         }
@@ -231,6 +239,7 @@ QtObject {
         hints = notification.hints;
         urgency = notification.urgency;
         resident = notification.resident;
+        isTransient = notification.transient;
         hasActionIcons = notification.hasActionIcons;
         // qmllint disable unresolved-type
         actions = notification.actions.map(a => ({
