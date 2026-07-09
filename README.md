@@ -349,7 +349,7 @@ For example, to disable the bar on DP-1:
 > - `services` (`weatherLocation`, `useFahrenheit`, `useFahrenheitPerformance`, `useTwelveHourClock`,
 >   `gpuType`, `visualiserBars`, `audioIncrement`, `brightnessIncrement`, `maxVolume`, `smartScheme`,
 >   `defaultPlayer`, `playerAliases`, `lyricsBackend`)
-> - `paths` (`wallpaperDir`, `lyricsDir`)
+> - `paths` (`wallpaperDir`, `lyricsDir`, `screenshotDir`)
 >
 > </details>
 
@@ -606,7 +606,8 @@ For example, to disable the bar on DP-1:
             "terminal": ["foot"],
             "audio": ["pavucontrol"],
             "playback": ["mpv"],
-            "explorer": ["thunar"]
+            "explorer": ["thunar"],
+            "screenshot": ["swappy"]
         },
         "idle": {
             "lockBeforeSleep": true,
@@ -866,6 +867,9 @@ For example, to disable the bar on DP-1:
             ],
             "playback": [
                 "mpv"
+            ],
+            "screenshot": [
+                "swappy"
             ],
             "terminal": [
                 "foot"
@@ -1128,6 +1132,7 @@ For example, to disable the bar on DP-1:
         "actionOnClick": false,
         "clearThreshold": 0.3,
         "defaultExpireTimeout": 5000,
+        "expandOnHover": false,
         "expandThreshold": 20,
         "expire": true,
         "fullscreen": "on",
@@ -1137,7 +1142,7 @@ For example, to disable the bar on DP-1:
     },
     "osd": {
         "enableBrightness": true,
-        "enableMicrophone": false,
+        "enableMicrophone": true,
         "enabled": true,
         "hideDelay": 2000
     },
@@ -1147,6 +1152,7 @@ For example, to disable the bar on DP-1:
         "lyricsDir": "/home/dim/Music/Lyrics/",
         "mediaGif": "root:/assets/bongocat.gif",
         "noNotifsPic": "root:/assets/dino.png",
+        "screenshotDir": "/home/dim/Pictures/Screenshots/",
         "sessionGif": "root:/assets/kurukuru.gif",
         "wallpaperDir": "/home/dim/Pictures/Wallpapers"
     },
