@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
+import qs.utils
 
 QtObject {
     id: root
@@ -13,9 +14,11 @@ QtObject {
     property var frequencies: ({})
     property bool _loaded: false
 
+    readonly property string freqFile: Paths.config + "/emoji-frequencies.json"
+
     property Process reader: Process {
         running: false
-        command: ["cat", "/usr/lib/python3.14/site-packages/caelestia/data/emojis.txt"]
+        command: ["cat", Quickshell.shellPath("assets/emojis.txt")]
         stdout: StdioCollector {
             onStreamFinished: {
                 const result = [];
@@ -44,7 +47,7 @@ QtObject {
 
     property Process freqReader: Process {
         running: false
-        command: ["test", "-f", Paths.config + "emoji-frequencies.json", "&&", "cat", Paths.config + "emoji-frequencies.json", "||", "echo", "{}"]
+        command: ["sh", "-c", `cat "$1" 2> /dev/null || echo "{}"`, "--", root.freqFile]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -72,7 +75,7 @@ QtObject {
     }
 
     function saveFrequencies(): void {
-        freqWriter.arguments = ["-echo", JSON.stringify(frequencies), ">", Paths.config + "emoji-frequencies.json"];
+        freqWriter.command = ["sh", "-c", `mkdir -p "$(dirname "$2")" && printf '%s' "$1" > "$2"`, "--", JSON.stringify(frequencies), freqFile];
         freqWriter.running = true;
     }
 
