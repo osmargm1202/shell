@@ -16,6 +16,30 @@ StyledListView {
     required property SearchBar search
     required property ScreenState screenState
 
+    // Filter results live on root properties instead of block bindings inside
+    // PropertyChanges: compiled block bindings there evaluate once on state
+    // entry and never react to search.text/items changes (list stuck empty on
+    // first open, unfiltered afterwards).
+    readonly property var emojiResults: {
+        const prefix = GlobalConfig.launcher.actionPrefix + "emoji ";
+        if (!search.text.startsWith(prefix))
+            return [];
+        const text = search.text.slice(prefix.length).toLowerCase();
+        if (!text)
+            return Emojis.getSortedItems();
+        return Emojis.items.filter(item => item.name.toLowerCase().includes(text));
+    }
+
+    readonly property var clipboardResults: {
+        const prefix = GlobalConfig.launcher.actionPrefix + "clipboard ";
+        if (!search.text.startsWith(prefix))
+            return [];
+        const text = search.text.slice(prefix.length).toLowerCase();
+        if (!text)
+            return Clipboard.getSortedItems();
+        return Clipboard.items.filter(item => item.preview.toLowerCase().includes(text));
+    }
+
     model: ScriptModel {
         id: model
 
@@ -166,15 +190,7 @@ StyledListView {
 
             PropertyChanges {
                 target: model
-                values: {
-                    const prefix = GlobalConfig.launcher.actionPrefix;
-                    const text = root.search.text.slice((prefix + "emoji ").length).toLowerCase();
-                    if (!text)
-                        return Emojis.getSortedItems();
-                    return Emojis.items.filter(function (item) {
-                        return item.name.toLowerCase().includes(text);
-                    });
-                }
+                values: root.emojiResults
             }
             PropertyChanges {
                 target: root
@@ -186,15 +202,7 @@ StyledListView {
 
             PropertyChanges {
                 target: model
-                values: {
-                    const prefix = GlobalConfig.launcher.actionPrefix;
-                    const text = root.search.text.slice((prefix + "clipboard ").length).toLowerCase();
-                    if (!text)
-                        return Clipboard.getSortedItems();
-                    return Clipboard.items.filter(function (item) {
-                        return item.preview.toLowerCase().includes(text);
-                    });
-                }
+                values: root.clipboardResults
             }
             PropertyChanges {
                 target: root
