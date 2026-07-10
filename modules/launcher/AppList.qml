@@ -40,8 +40,35 @@ StyledListView {
         return Clipboard.items.filter(item => item.preview.toLowerCase().includes(text));
     }
 
+    // values is bound here directly instead of per-state PropertyChanges: the
+    // transition below used to defer the values apply via PropertyAction, and
+    // an interrupted/never-run transition left the model empty with no binding
+    // installed (list stuck empty/unfiltered in emoji and clipboard modes).
     model: ScriptModel {
         id: model
+
+        values: {
+            switch (root.state) {
+            case "apps":
+                return Apps.search(root.search.text);
+            case "actions":
+                return Actions.query(root.search.text);
+            case "calc":
+                return [0];
+            case "scheme":
+                return Schemes.query(root.search.text);
+            case "variant":
+                return M3Variants.query(root.search.text);
+            case "emoji":
+                return root.emojiResults;
+            case "clipboard":
+                return root.clipboardResults;
+            case "windows":
+                return Windows.items;
+            default:
+                return [];
+            }
+        }
 
         onValuesChanged: root.currentIndex = 0
     }
@@ -129,10 +156,6 @@ StyledListView {
             name: "apps"
 
             PropertyChanges {
-                target: model
-                values: Apps.search(search.text)
-            }
-            PropertyChanges {
                 target: root
                 delegate: appItem
             }
@@ -140,10 +163,6 @@ StyledListView {
         State {
             name: "actions"
 
-            PropertyChanges {
-                target: model
-                values: Actions.query(search.text)
-            }
             PropertyChanges {
                 target: root
                 delegate: actionItem
@@ -153,10 +172,6 @@ StyledListView {
             name: "calc"
 
             PropertyChanges {
-                target: model
-                values: [0]
-            }
-            PropertyChanges {
                 target: root
                 delegate: calcItem
             }
@@ -164,10 +179,6 @@ StyledListView {
         State {
             name: "scheme"
 
-            PropertyChanges {
-                target: model
-                values: Schemes.query(search.text)
-            }
             PropertyChanges {
                 target: root
                 delegate: schemeItem
@@ -177,10 +188,6 @@ StyledListView {
             name: "variant"
 
             PropertyChanges {
-                target: model
-                values: M3Variants.query(search.text)
-            }
-            PropertyChanges {
                 target: root
                 delegate: variantItem
             }
@@ -188,10 +195,6 @@ StyledListView {
         State {
             name: "emoji"
 
-            PropertyChanges {
-                target: model
-                values: root.emojiResults
-            }
             PropertyChanges {
                 target: root
                 delegate: emojiItem
@@ -201,10 +204,6 @@ StyledListView {
             name: "clipboard"
 
             PropertyChanges {
-                target: model
-                values: root.clipboardResults
-            }
-            PropertyChanges {
                 target: root
                 delegate: clipItem
             }
@@ -212,10 +211,6 @@ StyledListView {
         State {
             name: "windows"
 
-            PropertyChanges {
-                target: model
-                values: Windows.items
-            }
             PropertyChanges {
                 target: root
                 delegate: windowsItem
@@ -242,10 +237,6 @@ StyledListView {
                     duration: Tokens.anim.durations.small
                     easing: Tokens.anim.standardAccel
                 }
-            }
-            PropertyAction {
-                targets: [model, root]
-                properties: "values,delegate"
             }
             ParallelAnimation {
                 Anim {

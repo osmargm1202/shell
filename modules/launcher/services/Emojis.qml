@@ -47,7 +47,7 @@ QtObject {
 
     property Process freqReader: Process {
         running: false
-        command: ["sh", "-c", `cat "$1" 2> /dev/null || echo "{}"`, "--", root.freqFile]
+        command: ["sh", "-c", "cat \"$1\" 2> /dev/null || echo '{}'", "--", root.freqFile]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -75,12 +75,12 @@ QtObject {
     }
 
     function saveFrequencies(): void {
-        freqWriter.command = ["sh", "-c", `mkdir -p "$(dirname "$2")" && printf '%s' "$1" > "$2"`, "--", JSON.stringify(frequencies), freqFile];
+        freqWriter.command = ["sh", "-c", "mkdir -p \"$(dirname \"$2\")\" && printf %s \"$1\" > \"$2\"", "--", JSON.stringify(frequencies), freqFile];
         freqWriter.running = true;
     }
 
-    function recordUsage(char: string): void {
-        frequencies[char] = (frequencies[char] || 0) + 1;
+    function recordUsage(charStr: string): void {
+        frequencies[charStr] = (frequencies[charStr] || 0) + 1;
         saveFrequencies();
     }
 
