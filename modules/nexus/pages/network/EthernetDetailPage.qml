@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Components
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -15,7 +16,7 @@ PageBase {
     id: root
 
     readonly property string ifaceName: nState.selectedEthernetInterface
-    readonly property Nmcli.EthernetDevice device: Nmcli.ethernetDevices.find(d => d.iface === root.ifaceName) ?? null
+    readonly property NmcliEthernetDevice device: Nmcli.ethernetDevices.find(d => d.iface === root.ifaceName) ?? null
     readonly property var details: Nmcli.ethernetDeviceDetails
     readonly property string connectionName: root.device?.connection ?? ""
 

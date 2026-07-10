@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -86,7 +87,7 @@ ColumnLayout {
         delegate: ConnectedRect {
             id: ethRow
 
-            required property Nmcli.EthernetDevice modelData
+            required property NmcliEthernetDevice modelData
             required property int index
 
             readonly property bool isConnected: modelData.connected

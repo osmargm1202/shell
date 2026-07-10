@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -13,7 +14,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    signal networkSelected(ap: Nmcli.AccessPoint)
+    signal networkSelected(ap: NmcliAccessPoint)
 
     title: qsTr("Network")
 
@@ -91,7 +92,7 @@ PageBase {
             delegate: StateLayer {
                 id: network
 
-                required property Nmcli.AccessPoint modelData
+                required property NmcliAccessPoint modelData
                 property bool currentSelected
                 property real textOpacity: disabled ? 0.5 : 1
 
@@ -127,7 +128,7 @@ PageBase {
                 }
 
                 Connections {
-                    function onNetworkSelected(ap: Nmcli.AccessPoint): void {
+                    function onNetworkSelected(ap: NmcliAccessPoint): void {
                         if (ap !== network.modelData)
                             network.currentSelected = false;
                     }
