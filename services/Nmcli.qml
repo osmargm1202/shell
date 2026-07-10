@@ -89,7 +89,7 @@ Singleton {
         core.setIpv4Config(connectionName, config, callback);
     }
 
-    NmcliCore {
+    readonly property NmcliCore core: NmcliCore {
         id: core
 
         onConnectionFailed: ssid => root.connectionFailed(ssid)

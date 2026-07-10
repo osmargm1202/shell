@@ -103,6 +103,9 @@ public:
 
 signals:
     void connectionFailed(const QString& ssid);
+    // Fired whenever the debounced `nmcli monitor` refresh runs. Lets other
+    // services (e.g. VPN) piggyback on the single shared monitor process.
+    void connectionEvent();
 
     void networksChanged();
     void ethernetDevicesChanged();

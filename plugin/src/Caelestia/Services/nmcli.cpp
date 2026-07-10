@@ -1263,6 +1263,8 @@ void NmcliCore::processSsidOutput(const QString& output) {
 }
 
 void NmcliCore::refreshOnConnectionChange() {
+    emit connectionEvent();
+
     getNetworks([this] {
         if (m_active) {
             QTimer::singleShot(500, this, [this] {

@@ -25,6 +25,12 @@ qml_module(caelestia-services
         nmclitypes.hpp
         nmcli.cpp
         nmcli.hpp
+        vpn.cpp
+        vpn.hpp
+        clipboard.cpp
+        clipboard.hpp
+        emojis.cpp
+        emojis.hpp
     LIBRARIES
         Qt::DBus
         PkgConfig::Pipewire
