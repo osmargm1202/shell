@@ -186,6 +186,7 @@ If you're migrating from the official caelestia shell to this fork, you may need
     "screenCounts": {}
 },
 "background": {
+    "externalWallpaperCommand": "",
     "videoWallpaperPaused": false,
     "videoWallpaperSoundEnabled": false,
     "videoWallpaperPauseOnFullscreen": false,
@@ -695,6 +696,7 @@ For example, to disable the bar on DP-1:
             }
         },
         "enabled": true,
+        "externalWallpaperCommand": "",
         "videoWallpaperMuteOnMedia": false,
         "videoWallpaperPauseOnAllDisplays": false,
         "videoWallpaperPauseOnFullscreen": false,

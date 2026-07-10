@@ -174,6 +174,12 @@ Scope {
         onPressed: {
             if (root.hasFullscreen)
                 return;
+            // Wallpaper handling delegated to an external selector (e.g.
+            // skwd-wall): run it instead of opening the built-in picker.
+            if (!GlobalConfig.background.wallpaperEnabled && GlobalConfig.background.externalWallpaperCommand !== "") {
+                Quickshell.execDetached(["sh", "-c", GlobalConfig.background.externalWallpaperCommand]);
+                return;
+            }
             Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}wallpaper `;
             const visibilities = Visibilities.getForActive();
             visibilities.launcher = true;

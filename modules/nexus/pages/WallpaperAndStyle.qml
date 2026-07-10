@@ -219,6 +219,47 @@ PageBase {
             onToggled: GlobalConfig.background.wallpaperEnabled = checked
         }
 
+        // External selector hand-off: with the built-in wallpaper disabled,
+        // the wallpaper shortcut runs this command instead of the picker.
+        ColumnLayout {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.extraSmall
+            visible: !Config.background.wallpaperEnabled
+
+            StyledText {
+                Layout.leftMargin: Tokens.padding.small
+                text: qsTr("External wallpaper command")
+                font: Tokens.font.body.medium
+            }
+
+            StyledText {
+                Layout.leftMargin: Tokens.padding.small
+                Layout.fillWidth: true
+                text: qsTr("Run this instead of the built-in picker when the wallpaper shortcut is pressed (e.g. \"skwd wall toggle\")")
+                color: Colours.palette.m3outline
+                font: Tokens.font.body.small
+                wrapMode: Text.WordWrap
+            }
+
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 36
+                radius: Tokens.rounding.small
+                color: Colours.layer(Colours.palette.m3surfaceVariant, 2)
+
+                StyledTextField {
+                    anchors.fill: parent
+                    anchors.leftMargin: Tokens.padding.medium
+                    anchors.rightMargin: Tokens.padding.medium
+                    verticalAlignment: TextInput.AlignVCenter
+                    placeholderText: qsTr("command to run")
+                    text: Config.background.externalWallpaperCommand
+                    onEditingFinished: GlobalConfig.background.externalWallpaperCommand = text
+                }
+            }
+        }
+
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true

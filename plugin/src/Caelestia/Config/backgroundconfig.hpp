@@ -117,6 +117,7 @@ class BackgroundConfig : public ConfigObject {
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(bool, wallpaperEnabled, true)
+    CONFIG_PROPERTY(QString, externalWallpaperCommand, QStringLiteral(""))
     CONFIG_PROPERTY(bool, wallpaperRecolor, false)
     CONFIG_PROPERTY(qreal, wallpaperRecolorStrength, 0.5)
     CONFIG_PROPERTY(bool, videoWallpaperPaused, false)
