@@ -13,6 +13,14 @@ Scope {
     property bool launcherInterrupted
     readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
 
+    function openLauncherAction(action: string): void {
+        if (root.hasFullscreen)
+            return;
+        Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}${action} `;
+        const visibilities = Visibilities.getForActive();
+        visibilities.launcher = true;
+    }
+
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -129,13 +137,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "emoji"
         description: "Open emoji picker"
-        onPressed: {
-            if (root.hasFullscreen)
-                return;
-            Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}emoji `;
-            const visibilities = Visibilities.getForActive();
-            visibilities.launcher = true;
-        }
+        onPressed: root.openLauncherAction("emoji")
     }
 
     // qmllint disable unresolved-type
@@ -143,13 +145,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "clipboard"
         description: "Open clipboard history"
-        onPressed: {
-            if (root.hasFullscreen)
-                return;
-            Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}clipboard `;
-            const visibilities = Visibilities.getForActive();
-            visibilities.launcher = true;
-        }
+        onPressed: root.openLauncherAction("clipboard")
     }
 
     // qmllint disable unresolved-type
@@ -198,6 +194,18 @@ Scope {
             const visibilities = Visibilities.getForActive();
             visibilities.launcher = true;
         }
+    }
+
+    IpcHandler {
+        function openClipboard(): void {
+            root.openLauncherAction("clipboard");
+        }
+
+        function openEmoji(): void {
+            root.openLauncherAction("emoji");
+        }
+
+        target: "launcher"
     }
 
     IpcHandler {
