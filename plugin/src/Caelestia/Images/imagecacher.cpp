@@ -17,18 +17,21 @@ namespace caelestia::images {
 
 namespace {
 
-QString sha256sum(const QString& path) {
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qCWarning(lcCacher).noquote() << "sha256sum: failed to open" << path;
+// Key derived from path + mtime + size instead of file contents: hashing
+// every image's full contents made opening the wallpaper picker re-read the
+// entire collection from disk on each open just to compute cache keys.
+QString cacheKey(const QString& path) {
+    const QFileInfo info(path);
+    if (!info.exists()) {
+        qCWarning(lcCacher).noquote() << "cacheKey: file does not exist" << path;
         return {};
     }
 
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    hash.addData(&file);
-    file.close();
+    const QString identity = info.canonicalFilePath() + QLatin1Char(':')
+        + QString::number(info.lastModified().toSecsSinceEpoch()) + QLatin1Char(':')
+        + QString::number(info.size());
 
-    return hash.result().toHex();
+    return QString::fromLatin1(QCryptographicHash::hash(identity.toUtf8(), QCryptographicHash::Sha256).toHex());
 }
 
 QString fillSuffix(ImageCacher::FillMode fillMode) {
@@ -55,7 +58,7 @@ const QString& ImageCacher::cacheDir() {
 }
 
 QString ImageCacher::cachePathFor(const QString& sourcePath, const QSize& size, FillMode fillMode) {
-    const QString sha = sha256sum(sourcePath);
+    const QString sha = cacheKey(sourcePath);
     if (sha.isEmpty())
         return {};
 
