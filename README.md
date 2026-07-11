@@ -282,6 +282,31 @@ by default. To change it, change the wallpapers path in `~/.config/caelestia/she
 To set the wallpaper, you can use the command `caelestia wallpaper`. Use `caelestia wallpaper -h` for more info about
 the command.
 
+### Remote wallpaper services
+
+Wallhaven and Steam Workshop are enabled by default and can be controlled independently:
+
+```json
+{
+  "services": {
+    "wallhavenEnabled": true,
+    "wallhavenApiKey": "",
+    "steamWorkshopEnabled": true,
+    "steamWorkshopApiKey": "YOUR_STEAM_WEB_API_KEY",
+    "steamWorkshopSteamRoot": "~/.local/share/Steam",
+    "steamWorkshopUsername": "YOUR_STEAM_USERNAME"
+  }
+}
+```
+
+Steam Workshop browsing targets Wallpaper Engine (`appid=431960`). Downloads use `steamcmd`. Before the first restricted download, authenticate once with:
+
+```sh
+steamcmd +login YOUR_STEAM_USERNAME +quit
+```
+
+Nix users must allow the unfree `steamcmd` package when evaluating or building Caelestia Shell. Downloaded `.mp4`, `.webm`, `.gif`, `.jpg`, `.jpeg`, and `.png` files are copied into the configured wallpaper directory.
+
 ## Updating
 
 If installed via the AUR package, simply update your system (e.g. using `yay`).
