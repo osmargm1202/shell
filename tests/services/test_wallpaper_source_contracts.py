@@ -31,3 +31,10 @@ def test_wallhaven_obeys_enabled_flag_and_does_not_log_secret_url() -> None:
     assert source.count("if (!enabled)") >= 4
     assert 'console.log("Wallhaven search:", url)' not in source
     assert 'console.log("Wallhaven random:", url)' not in source
+
+
+def test_steamcmd_is_an_unconditional_runtime_dependency() -> None:
+    source = text("nix/default.nix")
+    assert "  steamcmd," in source
+    runtime_block = source.split("runtimeDeps =", 1)[1].split("]", 1)[0]
+    assert "steamcmd" in runtime_block

@@ -16,6 +16,7 @@
   hyprland,
   ffmpeg,
   curl,
+  steamcmd,
   material-symbols,
   rubik,
   nerd-fonts,
@@ -52,6 +53,7 @@
       hyprland
       ffmpeg
       curl
+      steamcmd
     ]
     ++ extraRuntimeDeps
     ++ lib.optional withCli caelestia-cli;
