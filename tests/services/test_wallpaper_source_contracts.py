@@ -67,3 +67,22 @@ def test_steam_service_exposes_cursor_search_and_download_contract() -> None:
     assert "activeId || cancellingDownload || downloadProc.running" in source
     for extension in ("mp4", "webm", "gif", "jpg", "jpeg", "png"):
         assert extension in source
+
+
+def test_nexus_registers_steam_workshop_page() -> None:
+    registry = text("modules/nexus/PageCompRegistry.qml")
+    selector = text("modules/nexus/pages/wallandstyle/WallpaperSelect.qml")
+    page = text("modules/nexus/pages/wallandstyle/SteamWorkshopPage.qml")
+    assert "SteamWorkshopPage {}" in registry
+    assert 'text: qsTr("Steam Workshop")' in selector
+    assert "GlobalConfig.services.steamWorkshopEnabled" in selector
+    assert "SteamWorkshopTab" in page
+
+
+def test_steam_tab_connects_search_download_and_set() -> None:
+    source = text("modules/dashboard/SteamWorkshopTab.qml")
+    assert "SteamWorkshopSearcher.search(" in source
+    assert "SteamWorkshopSearcher.searchNextPage()" in source
+    assert "SteamWorkshopSearcher.downloadItem(" in source
+    assert "Wallpapers.setWallpaper(path)" in source
+    assert "Steam authentication required" in source

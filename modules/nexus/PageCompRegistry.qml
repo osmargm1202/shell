@@ -44,6 +44,9 @@ QtObject {
                 Component {
                     WallpaperEnginePage {}
                 }
+                Component {
+                    SteamWorkshopPage {}
+                }
             }
         },
         Component {

@@ -118,7 +118,8 @@ PageBase {
                 horizontalPadding: Tokens.padding.extraLarge
                 verticalPadding: Tokens.padding.medium
                 type: IconTextButton.Tonal
-                disabled: !Config.background.wallpaperEnabled
+                visible: GlobalConfig.services.wallhavenEnabled
+                disabled: !Config.background.wallpaperEnabled || !GlobalConfig.services.wallhavenEnabled
                 onClicked: root.nState.openSubPage(4)
             }
 
@@ -133,6 +134,20 @@ PageBase {
                 type: IconTextButton.Tonal
                 disabled: !Config.background.wallpaperEnabled
                 onClicked: root.nState.openSubPage(5)
+            }
+
+            IconTextButton {
+                icon: "workspaces"
+                text: qsTr("Steam Workshop")
+                font: Tokens.font.body.large
+                isRound: true
+                shapeMorph: true
+                horizontalPadding: Tokens.padding.extraLarge
+                verticalPadding: Tokens.padding.medium
+                type: IconTextButton.Tonal
+                visible: GlobalConfig.services.steamWorkshopEnabled
+                disabled: !Config.background.wallpaperEnabled || !GlobalConfig.services.steamWorkshopEnabled
+                onClicked: root.nState.openSubPage(6)
             }
 
             IconTextButton {
