@@ -16,17 +16,35 @@ Searcher {
     }
 
     function previewVariant(variant: string): void {
-        const cmd = `import json\nfrom caelestia.utils.scheme import get_scheme\nscheme = get_scheme()\nscheme.variant = "${variant}"\nscheme.update_colours()\nprint(json.dumps({"name": scheme.name, "flavour": scheme.flavour, "mode": scheme.mode, "variant": scheme.variant, "colours": scheme.colours}))`;
-        getPreviewColoursProc.command = ["python3", "-c", cmd];
+        getPreviewColoursProc.output = "";
+        getPreviewColoursProc.command = ["caelestia", "scheme", "preview", "--variant", variant];
         getPreviewColoursProc.running = true;
     }
 
     Process {
         id: getPreviewColoursProc
+
+        property string output
+
         stdout: StdioCollector {
-            onStreamFinished: {
-                Colours.load(text, true);
+            onStreamFinished: getPreviewColoursProc.output = text
+        }
+
+        // qmllint disable signal-handler-parameters
+        onExited: code => {
+            if (code !== 0) {
+                console.warn(`M3 variant preview failed with exit code ${code}`);
+                return;
+            }
+
+            try {
+                const preview = JSON.parse(output);
+                if (typeof preview !== "object" || preview === null || typeof preview.colours !== "object" || preview.colours === null)
+                    throw new Error("invalid scheme preview payload");
+                Colours.load(output, true);
                 Colours.showPreview = true;
+            } catch (error) {
+                console.warn(`M3 variant preview returned invalid JSON: ${error}`);
             }
         }
     }
