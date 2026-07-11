@@ -38,3 +38,32 @@ def test_steamcmd_is_an_unconditional_runtime_dependency() -> None:
     assert "  steamcmd," in source
     runtime_block = source.split("runtimeDeps =", 1)[1].split("]", 1)[0]
     assert "steamcmd" in runtime_block
+
+
+def test_steam_service_uses_wallpaper_engine_api_without_leaking_key() -> None:
+    source = text("services/SteamWorkshopSearcher.qml")
+    assert "IPublishedFileService/QueryFiles/v1/" in source
+    assert source.count("431960") >= 2
+    assert "108600" not in source
+    assert 'target: "steamworkshop"' in source
+    assert 'console.log("Steam Workshop URL"' not in source
+    assert "function requestFailed(error: string)" in source
+    assert "property int requestGeneration" in source
+    assert source.count("generation !== requestGeneration") >= 2
+    assert "if (missingApiKey) {\n            loading = false;" in source
+
+
+def test_steam_service_exposes_cursor_search_and_download_contract() -> None:
+    source = text("services/SteamWorkshopSearcher.qml")
+    for contract in (
+        "property string nextCursor",
+        "function search(query: string)",
+        "function searchNextPage()",
+        "function downloadItem(item: var)",
+        "signal authRequired(string username)",
+        "signal downloadComplete(string id, string path)",
+    ):
+        assert contract in source
+    assert "activeId || cancellingDownload || downloadProc.running" in source
+    for extension in ("mp4", "webm", "gif", "jpg", "jpeg", "png"):
+        assert extension in source
