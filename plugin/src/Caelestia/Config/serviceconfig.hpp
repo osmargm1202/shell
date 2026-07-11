@@ -36,6 +36,14 @@ class ServiceConfig : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(QString, lyricsBackend, u"Auto"_s)
     CONFIG_GLOBAL_PROPERTY(QStringList, bluetoothAutoReconnectDevices)
 
+    // Remote wallpaper source settings
+    CONFIG_GLOBAL_PROPERTY(QString, wallhavenApiKey)
+    CONFIG_GLOBAL_PROPERTY(bool, wallhavenEnabled, true)
+    CONFIG_GLOBAL_PROPERTY(QString, steamWorkshopApiKey)
+    CONFIG_GLOBAL_PROPERTY(bool, steamWorkshopEnabled, true)
+    CONFIG_GLOBAL_PROPERTY(QString, steamWorkshopSteamRoot, u"~/.local/share/Steam"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, steamWorkshopUsername)
+
     // Discord ARPC Settings
     CONFIG_GLOBAL_PROPERTY(bool, arpcEnabled, false)
     CONFIG_GLOBAL_PROPERTY(QString, arpcClientId, u"1126685412586733678"_s)

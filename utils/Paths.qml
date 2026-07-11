@@ -20,6 +20,9 @@ Singleton {
     readonly property string imagecache: `${cache}/imagecache`
     readonly property string notifimagecache: `${imagecache}/notifs`
     readonly property string wallsdir: Quickshell.env("CAELESTIA_WALLPAPERS_DIR") || absolutePath(GlobalConfig.paths.wallpaperDir)
+    readonly property string steamRoot: absolutePath(GlobalConfig.services.steamWorkshopSteamRoot)
+    readonly property string steamWorkshopContentDir: `${steamRoot}/steamapps/workshop/content/431960`
+    readonly property string steamWorkshopDownloadDir: `${steamRoot}/steamapps/workshop/downloads/431960`
     readonly property string videowallsdir: Quickshell.env("CAELESTIA_VIDEO_WALLPAPERS_DIR") || `${pictures}/Videos`
     readonly property string screenshotdir: Quickshell.env("CAELESTIA_SCREENSHOTS_DIR") || absolutePath(GlobalConfig.paths.screenshotDir)
     readonly property string recsdir: Quickshell.env("CAELESTIA_RECORDINGS_DIR") || `${videos}/Recordings`

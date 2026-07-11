@@ -15,6 +15,7 @@ Singleton {
 
     // User-configurable API key (NSFW content requires this)
     property string apiKey: GlobalConfig.services.wallhavenApiKey ?? ""
+    property bool enabled: GlobalConfig.services.wallhavenEnabled
 
     // Search state
     property bool loading: false
@@ -61,6 +62,9 @@ Singleton {
     }
 
     function search(query: string, page: int): void {
+        if (!enabled)
+            return;
+
         if (!query || query.trim() === "")
             return;
 
@@ -90,7 +94,7 @@ Singleton {
             params.colors = filters.colors;
 
         const url = buildUrl("/search", params);
-        console.log("Wallhaven search:", url);
+        console.log("Wallhaven search:", query, "page", page);
 
         Requests.get(url, text => {
             try {
@@ -113,6 +117,9 @@ Singleton {
     }
 
     function searchRandom(query: string): void {
+        if (!enabled)
+            return;
+
         if (!query || query.trim() === "")
             return;
 
@@ -129,7 +136,7 @@ Singleton {
         };
 
         const url = buildUrl("/search", params);
-        console.log("Wallhaven random:", url);
+        console.log("Wallhaven random:", query);
 
         Requests.get(url, text => {
             try {
@@ -152,6 +159,9 @@ Singleton {
     }
 
     function searchNextPage(): void {
+        if (!enabled)
+            return;
+
         if (currentPage < lastPage && lastQuery) {
             if (filters.sorting === "random" && lastSeed) {
                 currentPage++;
@@ -172,6 +182,9 @@ Singleton {
     }
 
     function loadPage(url: string): void {
+        if (!enabled)
+            return;
+
         Requests.get(url, text => {
             try {
                 const json = JSON.parse(text);
@@ -241,6 +254,9 @@ Singleton {
     }
 
     function downloadWallpaper(wallpaper: var): void {
+        if (!enabled)
+            return;
+
         if (!wallpaper || !wallpaper.path) {
             console.error("Wallhaven: Invalid wallpaper data");
             return;
