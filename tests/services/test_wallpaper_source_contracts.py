@@ -86,3 +86,14 @@ def test_steam_tab_connects_search_download_and_set() -> None:
     assert "SteamWorkshopSearcher.downloadItem(" in source
     assert "Wallpapers.setWallpaper(path)" in source
     assert "Steam authentication required" in source
+
+
+def test_dashboard_registers_both_remote_wallpaper_sources() -> None:
+    source = text("modules/dashboard/Content.qml")
+    assert "component: wallhavenComponent" in source
+    assert "enabled: GlobalConfig.services.wallhavenEnabled" in source
+    assert "component: steamWorkshopComponent" in source
+    assert "enabled: GlobalConfig.services.steamWorkshopEnabled" in source
+    assert "WallhavenTab {}" in source
+    assert "SteamWorkshopTab {}" in source
+    assert "Math.min(root.screenState.dashboardTab" in source

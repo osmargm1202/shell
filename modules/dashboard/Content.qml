@@ -47,6 +47,18 @@ Item {
                 iconName: "terminal",
                 text: qsTr("Terminal"),
                 enabled: Config.dashboard.showTerminal
+            },
+            {
+                component: wallhavenComponent,
+                iconName: "image_search",
+                text: qsTr("Wallhaven"),
+                enabled: GlobalConfig.services.wallhavenEnabled
+            },
+            {
+                component: steamWorkshopComponent,
+                iconName: "workspaces",
+                text: qsTr("Steam Workshop"),
+                enabled: GlobalConfig.services.steamWorkshopEnabled
             }
         ];
         return allTabs.filter(tab => tab.enabled);
@@ -54,6 +66,13 @@ Item {
 
     readonly property real nonAnimWidth: view.implicitWidth + viewWrapper.anchors.margins * 2
     readonly property real nonAnimHeight: tabs.implicitHeight + tabs.anchors.topMargin + view.implicitHeight + viewWrapper.anchors.margins * 2
+
+    onDashboardTabsChanged: {
+        root.screenState.dashboardTab = Math.min(
+            root.screenState.dashboardTab,
+            Math.max(root.dashboardTabs.length - 1, 0)
+        );
+    }
 
     implicitWidth: nonAnimWidth
     implicitHeight: nonAnimHeight
@@ -196,6 +215,18 @@ Item {
                 id: terminalComponent
 
                 TerminalTab {}
+            }
+
+            Component {
+                id: wallhavenComponent
+
+                WallhavenTab {}
+            }
+
+            Component {
+                id: steamWorkshopComponent
+
+                SteamWorkshopTab {}
             }
 
             Behavior on contentX {
