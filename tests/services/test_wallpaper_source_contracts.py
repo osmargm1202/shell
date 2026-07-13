@@ -47,7 +47,7 @@ def test_steam_service_uses_wallpaper_engine_api_without_leaking_key() -> None:
     assert "108600" not in source
     assert 'target: "steamworkshop"' in source
     assert 'console.log("Steam Workshop URL"' not in source
-    assert "function requestFailed(error: string)" in source
+    assert "function requestFailed(failure: var)" in source
     assert "property int requestGeneration" in source
     assert source.count("generation !== requestGeneration") >= 2
     assert "if (missingApiKey) {\n            loading = false;" in source
@@ -65,8 +65,12 @@ def test_steam_service_exposes_cursor_search_and_download_contract() -> None:
     ):
         assert contract in source
     assert "activeId || cancellingDownload || downloadProc.running" in source
+    helper = text("services/steam-workshop-media.sh")
     for extension in ("mp4", "webm", "gif", "jpg", "jpeg", "png"):
-        assert extension in source
+        assert extension in helper
+    assert '"install"' in source
+    assert '"discover"' not in source
+    assert '"safe-copy"' not in source
 
 
 def test_nexus_registers_steam_workshop_page() -> None:

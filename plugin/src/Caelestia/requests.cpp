@@ -41,10 +41,13 @@ void Requests::get(const QUrl& url, QJSValue onSuccess, QJSValue onError, QJSVal
     QObject::connect(reply, &QNetworkReply::finished, [reply, onSuccess, onError]() {
         if (reply->error() == QNetworkReply::NoError) {
             onSuccess.call({ QString(reply->readAll()) });
-        } else if (onError.isCallable()) {
-            onError.call({ reply->errorString() });
         } else {
-            qCWarning(lcRequests) << "get: request failed with error" << reply->errorString();
+            const auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            if (onError.isCallable()) {
+                onError.call({ reply->errorString(), status });
+            } else {
+                qCWarning(lcRequests) << "get: request failed" << reply->error() << "HTTP status" << status;
+            }
         }
 
         reply->deleteLater();

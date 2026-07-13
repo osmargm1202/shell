@@ -28,7 +28,6 @@ Singleton {
     property var currentItem: null
     property string activeId: ""
     property string expectedBytes: "0"
-    property string selectedSource: ""
     property string selectedDestination: ""
     property string stdoutBuffer: ""
     property string stderrBuffer: ""
@@ -120,8 +119,10 @@ Singleton {
             try {
                 const json = JSON.parse(text);
                 const response = json.response ?? {};
-                if (response.result && response.result !== 1)
-                    throw new Error(response.result_details ?? `Steam result ${response.result}`);
+                if (response.result && response.result !== 1) {
+                    requestFailed(WorkshopHelpers.classifyRequestFailure("api", 200, response.result));
+                    return;
+                }
                 const page = (response.publishedfiledetails ?? []).map(item => normalizeItem(item));
                 const merged = WorkshopHelpers.mergePage(append ? results : [], page,
                     requestedCursor, response.next_cursor, requestedCursors);
@@ -135,23 +136,24 @@ Singleton {
                     "total": Number(response.total ?? results.length)
                 });
             } catch (error) {
-                loading = false;
-                hasMore = false;
-                console.warn("Steam Workshop request failed:", error);
-                searchComplete([], {"error": String(error)});
+                requestFailed(WorkshopHelpers.classifyRequestFailure("parse", 200, 0));
             }
-        }, error => {
+        }, (error, status) => {
             if (!enabled || generation !== requestGeneration)
                 return;
-            requestFailed(String(error));
+            requestFailed(WorkshopHelpers.classifyTransportError(error, status));
         });
     }
 
-    function requestFailed(error: string): void {
+    function requestFailed(failure: var): void {
         loading = false;
         hasMore = false;
-        console.warn("Steam Workshop request failed:", error);
-        searchComplete([], {"error": error});
+        console.warn("Steam Workshop request failed:", failure.kind);
+        searchComplete([], {
+            "error": failure.message,
+            "errorKind": failure.kind,
+            "retryLater": failure.retryLater
+        });
     }
 
     function downloadItem(item: var): void {
@@ -187,32 +189,6 @@ Singleton {
         progressPoller.stop();
         downloadFailed(activeId, error);
         activeId = "";
-    }
-
-    function extension(path: string): string {
-        const match = path.toLowerCase().match(/\.([a-z0-9]+)$/);
-        return match ? match[1] : "";
-    }
-
-    function mediaRank(path: string): int {
-        const ext = extension(path);
-        if (ext === "mp4" || ext === "webm")
-            return 0;
-        if (ext === "gif")
-            return 1;
-        if (ext === "jpg" || ext === "jpeg" || ext === "png")
-            return 2;
-        return -1;
-    }
-
-    function beginCopy(source: string): void {
-        const ext = extension(source);
-        selectedSource = source;
-        selectedDestination = `${Paths.wallsdir}/steam-${activeId}.${ext}`;
-        const plan = WorkshopHelpers.copyPlan(selectedDestination);
-        copyProc.command = ["bash", `${Quickshell.shellDir}/services/steam-workshop-media.sh`,
-            "safe-copy", `${Paths.steamWorkshopContentDir}/${activeId}`, source, plan.destination];
-        copyProc.running = true;
     }
 
     onEnabledChanged: {
@@ -267,7 +243,7 @@ Singleton {
                 return;
             }
             mediaFinder.command = ["bash", `${Quickshell.shellDir}/services/steam-workshop-media.sh`,
-                "discover", `${Paths.steamWorkshopContentDir}/${activeId}`, mediaPreference];
+                "install", `${Paths.steamWorkshopContentDir}/${activeId}`, mediaPreference, Paths.wallsdir, activeId];
             mediaFinder.running = true;
         }
     }
@@ -325,41 +301,20 @@ Singleton {
         }
         onRunningChanged: if (running) output = ""
         onExited: code => {
-            if (code !== 0) {
-                root.finishFailure("Failed to inspect Workshop media");
-                return;
-            }
-            const candidates = output.split("\n").map(line => {
-                const separator = line.indexOf("\t");
-                if (separator < 1)
-                    return null;
-                const path = Qt.atob(line.slice(separator + 1));
-                const rank = root.mediaRank(path);
-                if (rank < 0)
-                    return null;
-                return {
-                    "size": Number(line.slice(0, separator)),
-                    "path": path,
-                    "rank": rank
-                };
-            }).filter(candidate => candidate !== null);
-            candidates.sort((left, right) => left.rank - right.rank || right.size - left.size || left.path.localeCompare(right.path));
-            if (!candidates.length) {
+            if (code === 4) {
                 root.finishFailure("No supported wallpaper media found");
                 return;
             }
-            root.beginCopy(candidates[0].path);
-        }
-    }
-
-    Process {
-        id: copyProc
-
-        onExited: code => {
             if (code !== 0) {
-                root.finishFailure("Failed to copy Workshop media");
+                root.finishFailure("Failed to install Workshop media");
                 return;
             }
+            const separator = output.indexOf("\t");
+            if (separator < 1 || output.slice(0, separator) !== "OK") {
+                root.finishFailure("Failed to install Workshop media");
+                return;
+            }
+            root.selectedDestination = output.slice(separator + 1).replace(/\n$/, "");
             root.downloadProgress(root.activeId, 1);
             root.downloadComplete(root.activeId, root.selectedDestination);
             root.activeId = "";

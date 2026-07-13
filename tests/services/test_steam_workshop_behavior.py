@@ -1,4 +1,3 @@
-import base64
 import json
 import subprocess
 from pathlib import Path
@@ -32,18 +31,12 @@ process.stdout.write(JSON.stringify(context[fn](...args)));
     return json.loads(result.stdout)
 
 
-def discover(root: Path, preference: str = "all") -> list[tuple[int, Path]]:
-    result = subprocess.run(
-        ["bash", str(MEDIA_TOOL), "discover", str(root), preference],
-        check=True,
+def install_media(root: Path, preference: str, walls_dir: Path, item_id: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["bash", str(MEDIA_TOOL), "install", str(root), preference, str(walls_dir), item_id],
         capture_output=True,
         text=True,
     )
-    records = []
-    for line in result.stdout.splitlines():
-        size, encoded_path = line.split("\t", 1)
-        records.append((int(size), Path(base64.b64decode(encoded_path).decode())))
-    return records
 
 
 @pytest.mark.parametrize("invalid", ["12/34", " 123", "123 ", "-1", "1e3", "", None])
@@ -104,49 +97,55 @@ def test_cursor_merge_rejects_non_string_cursors(malformed) -> None:
     assert merged["hasMore"] is False
 
 
-def test_copy_plan_installs_directly_to_final_destination() -> None:
-    plan = call_helper("copyPlan", "/walls/steam-42.mp4")
-    assert plan == {"destination": "/walls/steam-42.mp4", "requiresSecondMove": False}
-
-
-def test_media_discovery_handles_delimiters_and_filters_media_type(tmp_path: Path) -> None:
-    video = tmp_path / "video\tname\nclip.mp4"
-    image = tmp_path / "still.png"
-    video.write_bytes(b"v" * 7)
-    image.write_bytes(b"i" * 11)
-
-    assert discover(tmp_path, "video") == [(7, video.resolve())]
-    assert discover(tmp_path, "image") == [(11, image.resolve())]
-    assert {path for _, path in discover(tmp_path)} == {video.resolve(), image.resolve()}
-
-
-def test_media_discovery_rejects_symlinks_that_escape_item_root(tmp_path: Path) -> None:
+def test_media_install_keeps_non_ascii_source_filename_inside_helper_contract(tmp_path: Path) -> None:
     item_root = tmp_path / "item"
+    walls_dir = tmp_path / "walls"
     item_root.mkdir()
+    walls_dir.mkdir()
+    source = item_root / "vídeo-壁紙.mp4"
+    source.write_bytes(b"wallpaper")
+
+    result = install_media(item_root, "all", walls_dir, "42")
+
+    destination = walls_dir / "steam-42.mp4"
+    assert result.returncode == 0
+    assert result.stdout == f"OK\t{destination}\n"
+    assert source.name not in result.stdout
+    assert destination.read_bytes() == b"wallpaper"
+
+
+def test_media_install_ranks_type_then_size_and_filters_preference(tmp_path: Path) -> None:
+    item_root = tmp_path / "item"
+    walls_dir = tmp_path / "walls"
+    item_root.mkdir()
+    walls_dir.mkdir()
+    (item_root / "large.png").write_bytes(b"i" * 20)
+    preferred = item_root / "small.mp4"
+    preferred.write_bytes(b"v" * 4)
+
+    result = install_media(item_root, "all", walls_dir, "42")
+    assert result.returncode == 0
+    assert (walls_dir / "steam-42.mp4").read_bytes() == preferred.read_bytes()
+
+    result = install_media(item_root, "image", walls_dir, "42")
+    assert result.returncode == 0
+    assert (walls_dir / "steam-42.png").read_bytes() == b"i" * 20
+
+
+def test_media_install_rejects_symlinks_that_escape_item_root(tmp_path: Path) -> None:
+    item_root = tmp_path / "item"
+    walls_dir = tmp_path / "walls"
+    item_root.mkdir()
+    walls_dir.mkdir()
     outside = tmp_path / "outside.mp4"
     outside.write_bytes(b"outside")
     (item_root / "escape.mp4").symlink_to(outside)
 
-    assert discover(item_root) == []
+    result = install_media(item_root, "all", walls_dir, "42")
 
-
-def test_safe_copy_rechecks_canonical_containment_and_rejects_symlink(tmp_path: Path) -> None:
-    item_root = tmp_path / "item"
-    item_root.mkdir()
-    outside = tmp_path / "outside.mp4"
-    outside.write_bytes(b"outside")
-    escaping_link = item_root / "escape.mp4"
-    escaping_link.symlink_to(outside)
-    destination = tmp_path / "destination.tmp"
-
-    result = subprocess.run(
-        ["bash", str(MEDIA_TOOL), "safe-copy", str(item_root), str(escaping_link), str(destination)],
-        capture_output=True,
-        text=True,
-    )
-
-    assert result.returncode != 0
-    assert not destination.exists()
+    assert result.returncode == 4
+    assert result.stdout == "NONE\n"
+    assert not list(walls_dir.iterdir())
 
 
 def test_disabling_service_invalidates_and_clears_active_search_state() -> None:
@@ -160,25 +159,76 @@ def test_disabling_service_invalidates_and_clears_active_search_state() -> None:
     }
 
 
-def test_safe_copy_replaces_temporary_destination_symlink_without_following_it(tmp_path: Path) -> None:
+def test_media_install_atomically_replaces_destination_symlink_without_following_it(tmp_path: Path) -> None:
     item_root = tmp_path / "item"
+    walls_dir = tmp_path / "walls"
     item_root.mkdir()
+    walls_dir.mkdir()
     source = item_root / "wallpaper.mp4"
     source.write_bytes(b"wallpaper")
     outside = tmp_path / "outside"
     outside.write_bytes(b"do-not-overwrite")
-    destination = tmp_path / "destination.tmp"
+    destination = walls_dir / "steam-42.mp4"
     destination.symlink_to(outside)
 
-    subprocess.run(
-        ["bash", str(MEDIA_TOOL), "safe-copy", str(item_root), str(source), str(destination)],
-        check=True,
-    )
+    result = install_media(item_root, "all", walls_dir, "42")
 
+    assert result.returncode == 0
     assert destination.is_file()
     assert not destination.is_symlink()
     assert destination.read_bytes() == b"wallpaper"
     assert outside.read_bytes() == b"do-not-overwrite"
+
+
+@pytest.mark.parametrize(
+    ("source", "status", "api_result", "expected"),
+    [
+        ("transport", 0, 0, {"kind": "transport", "message": "Unable to reach Steam Workshop. Check your connection and try again.", "retryLater": False}),
+        ("http", 500, 0, {"kind": "service", "message": "Steam Workshop is temporarily unavailable. Try again later.", "retryLater": False}),
+        ("http", 429, 0, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
+        ("api", 200, 29, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
+        ("api", 200, 84, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
+        ("parse", 200, 0, {"kind": "response", "message": "Steam Workshop returned an invalid response. Try again.", "retryLater": False}),
+    ],
+)
+def test_request_failures_are_classified_into_fixed_safe_messages(source, status, api_result, expected) -> None:
+    assert call_helper("classifyRequestFailure", source, status, api_result) == expected
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "GET https://api.steampowered.com/query?key=super-secret&search=x failed with HTTP 429",
+        "Error transferring https://api.steampowered.com/query?key=super-secret - server replied: Too Many Requests",
+    ],
+)
+def test_key_bearing_transport_error_becomes_safe_fixed_message(raw) -> None:
+    failure = call_helper("classifyTransportError", raw)
+    assert failure == {
+        "kind": "rateLimit",
+        "message": "Steam Workshop rate limit reached. Retry later.",
+        "retryLater": True,
+    }
+    assert "super-secret" not in json.dumps(failure)
+    assert "key=" not in json.dumps(failure)
+
+
+def test_requests_error_callback_provides_http_status_without_logging_raw_error() -> None:
+    requests = (ROOT / "plugin/src/Caelestia/requests.cpp").read_text()
+    assert "QNetworkRequest::HttpStatusCodeAttribute" in requests
+    assert "onError.call({ reply->errorString(), status })" in requests
+    assert '<< reply->errorString()' not in requests
+
+
+def test_qml_never_logs_or_displays_raw_key_bearing_request_errors() -> None:
+    qml = (ROOT / "services/SteamWorkshopSearcher.qml").read_text()
+    assert "error, status" in qml
+    assert "requestFailed(String(error))" not in qml
+    assert '"error": String(error)' not in qml
+    assert 'console.warn("Steam Workshop request failed:", error)' not in qml
+    assert "Qt.atob" not in qml
+    assert '"discover"' not in qml
+    assert '"safe-copy"' not in qml
 
 
 def test_metadata_helpers_normalize_tags_and_format_update_date() -> None:

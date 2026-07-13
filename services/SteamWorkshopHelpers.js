@@ -42,10 +42,42 @@ function mergePage(existing, page, requestedCursor, nextCursor, requestedCursors
     };
 }
 
-function copyPlan(destination) {
+function classifyTransportError(error, httpStatus) {
+    const objectStatus = Number(httpStatus || error && (error.status || error.statusCode || error.httpStatus) || 0);
+    const raw = String(error === null || error === undefined ? "" : error);
+    const rateLimited = /\b429\b/.test(raw) || /too many requests/i.test(raw);
+    const status = objectStatus || (rateLimited ? 429 : 0);
+    return classifyRequestFailure(status === 429 ? "http" : "transport", status, 0);
+}
+
+function classifyRequestFailure(source, status, apiResult) {
+    const httpStatus = Number(status || 0);
+    const result = Number(apiResult || 0);
+    if (httpStatus === 429 || (source === "api" && (result === 29 || result === 84))) {
+        return {
+            "kind": "rateLimit",
+            "message": "Steam Workshop rate limit reached. Retry later.",
+            "retryLater": true
+        };
+    }
+    if (source === "transport") {
+        return {
+            "kind": "transport",
+            "message": "Unable to reach Steam Workshop. Check your connection and try again.",
+            "retryLater": false
+        };
+    }
+    if (source === "parse") {
+        return {
+            "kind": "response",
+            "message": "Steam Workshop returned an invalid response. Try again.",
+            "retryLater": false
+        };
+    }
     return {
-        "destination": String(destination || ""),
-        "requiresSecondMove": false
+        "kind": "service",
+        "message": "Steam Workshop is temporarily unavailable. Try again later.",
+        "retryLater": false
     };
 }
 
