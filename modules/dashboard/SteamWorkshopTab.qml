@@ -22,9 +22,10 @@ Item {
     property var selectedWallpaper: null
     property bool detailPanelOpen: false
     property int selectedIndex: -1
-    property string statusMessage: SteamWorkshopSearcher.missingApiKey
+    property string requestStatusMessage: ""
+    readonly property string statusMessage: SteamWorkshopSearcher.missingApiKey
         ? qsTr("Add a Steam Web API key in services.steamWorkshopApiKey")
-        : ""
+        : requestStatusMessage
 
     function selectWallpaper(index) {
         if (index >= 0 && index < root.currentResults.length) {
@@ -105,6 +106,7 @@ Item {
                         id: searchField
 
                         Layout.fillWidth: true
+                        enabled: !root.isLoading
                         placeholderText: qsTr("Search Steam Workshop...")
                         onTextChanged: root.searchQuery = text
 
@@ -120,6 +122,7 @@ Item {
                     }
 
                     IconButton {
+                        enabled: !root.isLoading
                         icon: "refresh"
                         onClicked: {
                             if (root.searchQuery.trim())
@@ -143,6 +146,7 @@ Item {
                     }
 
                     SplitButton {
+                        enabled: !root.isLoading
                         fallbackIcon: "sort"
                         fallbackText: qsTr("Relevance")
                         minLeftWidth: 110
@@ -178,6 +182,39 @@ Item {
                                     if (root.searchQuery.trim())
                                         SteamWorkshopSearcher.search(root.searchQuery);
                                 }
+                            }
+                        ]
+                    }
+
+                    SplitButton {
+                        enabled: !root.isLoading
+                        fallbackIcon: "movie"
+                        fallbackText: {
+                            const labels = {
+                                "all": qsTr("Any media"),
+                                "video": qsTr("Video"),
+                                "gif": qsTr("GIF"),
+                                "image": qsTr("Still image")
+                            };
+                            return labels[SteamWorkshopSearcher.mediaPreference] || labels.all;
+                        }
+                        minLeftWidth: 110
+                        menuItems: [
+                            MenuItem {
+                                text: qsTr("Any media")
+                                onClicked: SteamWorkshopSearcher.setMediaPreference("all")
+                            },
+                            MenuItem {
+                                text: qsTr("Video")
+                                onClicked: SteamWorkshopSearcher.setMediaPreference("video")
+                            },
+                            MenuItem {
+                                text: qsTr("GIF")
+                                onClicked: SteamWorkshopSearcher.setMediaPreference("gif")
+                            },
+                            MenuItem {
+                                text: qsTr("Still image")
+                                onClicked: SteamWorkshopSearcher.setMediaPreference("image")
                             }
                         ]
                     }
@@ -337,31 +374,58 @@ Item {
                 }
             }
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
+                spacing: Tokens.spacing.small
 
-                StyledText {
-                    text: root.selectedWallpaper?.title || ""
-                    font: Tokens.font.body.small
-                    color: Colours.palette.m3outline
-                }
-
-                Item {
+                RowLayout {
                     Layout.fillWidth: true
+
+                    StyledText {
+                        text: root.selectedWallpaper?.title || ""
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3outline
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    StyledText {
+                        text: "%1 / %2".arg(root.selectedIndex + 1).arg(root.currentResults.length)
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3outline
+                    }
                 }
 
-                StyledText {
-                    text: root.selectedWallpaper
-                        ? qsTr("%1 MiB").arg((root.selectedWallpaper.fileSize / 1048576).toFixed(1))
-                        : ""
-                    font: Tokens.font.body.small
-                    color: Colours.palette.m3outline
-                }
+                RowLayout {
+                    Layout.fillWidth: true
 
-                StyledText {
-                    text: "%1 / %2".arg(root.selectedIndex + 1).arg(root.currentResults.length)
-                    font: Tokens.font.body.small
-                    color: Colours.palette.m3outline
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: root.selectedWallpaper?.tags?.length
+                            ? qsTr("Tags: %1").arg(root.selectedWallpaper.tags.join(", "))
+                            : qsTr("Tags: none")
+                        elide: Text.ElideRight
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3outline
+                    }
+
+                    StyledText {
+                        text: root.selectedWallpaper?.timeUpdated
+                            ? qsTr("Updated %1").arg(SteamWorkshopSearcher.formattedUpdateDate(root.selectedWallpaper.timeUpdated))
+                            : ""
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3outline
+                    }
+
+                    StyledText {
+                        text: root.selectedWallpaper
+                            ? qsTr("%1 MiB").arg((root.selectedWallpaper.fileSize / 1048576).toFixed(1))
+                            : ""
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3outline
+                    }
                 }
             }
         }
@@ -380,28 +444,30 @@ Item {
     Connections {
         function onSearchComplete(results, meta) {
             root.currentResults = SteamWorkshopSearcher.results;
-            root.statusMessage = meta.error ?? "";
+            root.requestStatusMessage = meta.missingApiKey
+                ? qsTr("Add a Steam Web API key in services.steamWorkshopApiKey")
+                : (meta.error ?? "");
         }
 
         function onDownloadProgress(id, progress) {
             if (root.selectedWallpaper?.id === id)
-                root.statusMessage = qsTr("Downloading… %1%").arg(Math.round(progress * 100));
+                root.requestStatusMessage = qsTr("Downloading… %1%").arg(Math.round(progress * 100));
         }
 
         function onAuthRequired(username) {
-            root.statusMessage = qsTr("Steam authentication required. Run: steamcmd +login %1").arg(username || "<username>");
+            root.requestStatusMessage = qsTr("Steam authentication required. Run: steamcmd +login %1").arg(username || "<username>");
         }
 
         function onDownloadComplete(id, path) {
             if (root.selectedWallpaper?.id === id) {
                 Wallpapers.setWallpaper(path);
                 root.detailPanelOpen = false;
-                root.statusMessage = "";
+                root.requestStatusMessage = "";
             }
         }
 
         function onDownloadFailed(id, error) {
-            root.statusMessage = error;
+            root.requestStatusMessage = error;
         }
 
         target: SteamWorkshopSearcher

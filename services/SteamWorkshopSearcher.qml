@@ -5,28 +5,32 @@ import Quickshell
 import Quickshell.Io
 import Caelestia.Config
 import qs.utils
+import "SteamWorkshopHelpers.js" as WorkshopHelpers
 
 Singleton {
     id: root
 
     readonly property string apiBase: "https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/"
     readonly property string appId: "431960" // Wallpaper Engine app ID 431960 is used for API queries and steamcmd.
-    property string apiKey: GlobalConfig.services.steamWorkshopApiKey
+    property string apiKey: GlobalConfig.services.steamWorkshopApiKey ?? ""
     property bool enabled: GlobalConfig.services.steamWorkshopEnabled
     property string username: GlobalConfig.services.steamWorkshopUsername
     property bool loading: false
-    property bool missingApiKey: false
+    readonly property bool missingApiKey: WorkshopHelpers.isMissingApiKey(apiKey)
     property string lastQuery: ""
     property string nextCursor: "*"
     property bool hasMore: false
     property int queryType: 12
+    property string mediaPreference: "all"
     property int requestGeneration: 0
+    property var requestedCursors: []
     property list<var> results
     property var currentItem: null
     property string activeId: ""
     property string expectedBytes: "0"
     property string selectedSource: ""
     property string selectedDestination: ""
+    property string stdoutBuffer: ""
     property string stderrBuffer: ""
     property bool cancellingDownload: false
 
@@ -44,7 +48,7 @@ Singleton {
             "previewUrl": String(item.preview_url ?? (item.previews && item.previews.length ? item.previews[0].url : "")),
             "fileSize": Number(item.file_size ?? 0),
             "timeUpdated": Number(item.time_updated ?? 0),
-            "tags": item.tags ?? [],
+            "tags": WorkshopHelpers.normalizedTags(item.tags),
             "raw": item
         };
     }
@@ -71,7 +75,6 @@ Singleton {
         if (!enabled || !query.trim())
             return;
         requestGeneration++;
-        missingApiKey = !apiKey;
         if (missingApiKey) {
             loading = false;
             hasMore = false;
@@ -81,6 +84,7 @@ Singleton {
         lastQuery = query.trim();
         nextCursor = "*";
         hasMore = false;
+        requestedCursors = [];
         results = [];
         requestPage(nextCursor, false);
     }
@@ -95,8 +99,19 @@ Singleton {
         queryType = type;
     }
 
+    function setMediaPreference(preference: string): void {
+        if (["all", "video", "gif", "image"].indexOf(preference) >= 0)
+            mediaPreference = preference;
+    }
+
+    function formattedUpdateDate(timestamp: var): string {
+        return WorkshopHelpers.formattedUpdateDate(timestamp);
+    }
+
     function requestPage(cursor: string, append: bool): void {
         const generation = requestGeneration;
+        const requestedCursor = String(cursor || "*");
+        requestedCursors = [...requestedCursors, requestedCursor];
         loading = true;
         console.log("Steam Workshop search:", lastQuery, "cursor", cursor === "*" ? "initial" : "next");
         Requests.get(buildUrl(lastQuery, cursor), text => {
@@ -108,11 +123,13 @@ Singleton {
                 if (response.result && response.result !== 1)
                     throw new Error(response.result_details ?? `Steam result ${response.result}`);
                 const page = (response.publishedfiledetails ?? []).map(item => normalizeItem(item));
-                results = append ? [...results, ...page] : page;
-                nextCursor = String(response.next_cursor ?? "");
-                hasMore = nextCursor.length > 0 && page.length > 0;
+                const merged = WorkshopHelpers.mergePage(append ? results : [], page,
+                    requestedCursor, response.next_cursor, requestedCursors);
+                results = merged.results;
+                nextCursor = merged.nextCursor;
+                hasMore = merged.hasMore;
                 loading = false;
-                searchComplete(page, {
+                searchComplete(merged.added, {
                     "nextCursor": nextCursor,
                     "hasMore": hasMore,
                     "total": Number(response.total ?? results.length)
@@ -144,16 +161,17 @@ Singleton {
             downloadFailed(String(item.id ?? item.publishedfileid ?? ""), "A Workshop download is already active");
             return;
         }
-        const id = String(item.id ?? item.publishedfileid ?? "").replace(/[^0-9]/g, "");
+        const id = WorkshopHelpers.validatedId(item.id ?? item.publishedfileid);
         if (!id) {
             downloadFailed("", "Invalid Workshop item ID");
             return;
         }
         activeId = id;
         expectedBytes = String(Number(item.fileSize ?? item.file_size ?? 0));
+        stdoutBuffer = "";
         stderrBuffer = "";
         downloadProc.command = [
-            "steamcmd",
+            "env", "steamcmd",
             "+force_install_dir", Paths.steamRoot,
             "+login", username || "anonymous",
             "+workshop_download_item", appId, id,
@@ -191,8 +209,21 @@ Singleton {
         const ext = extension(source);
         selectedSource = source;
         selectedDestination = `${Paths.wallsdir}/steam-${activeId}.${ext}`;
-        copyProc.command = ["cp", "--", source, `${selectedDestination}.tmp`];
+        const plan = WorkshopHelpers.copyPlan(selectedDestination);
+        copyProc.command = ["bash", `${Quickshell.shellDir}/services/steam-workshop-media.sh`,
+            "safe-copy", `${Paths.steamWorkshopContentDir}/${activeId}`, source, plan.destination];
         copyProc.running = true;
+    }
+
+    onEnabledChanged: {
+        if (!enabled) {
+            const state = WorkshopHelpers.disabledRequestState(requestGeneration);
+            requestGeneration = state.requestGeneration;
+            loading = state.loading;
+            hasMore = state.hasMore;
+            nextCursor = state.nextCursor;
+            requestedCursors = state.requestedCursors;
+        }
     }
 
     IpcHandler {
@@ -206,6 +237,10 @@ Singleton {
     Process {
         id: downloadProc
 
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: data => root.stdoutBuffer += data
+        }
         stderr: SplitParser {
             splitMarker: ""
             onRead: data => root.stderrBuffer += data
@@ -218,18 +253,21 @@ Singleton {
                 return;
             }
             if (code !== 0) {
-                const lower = stderrBuffer.toLowerCase();
-                if (lower.includes("login failure") || lower.includes("invalid password") || lower.includes("two-factor")) {
+                const failure = WorkshopHelpers.classifySteamcmdFailure(code, stdoutBuffer, stderrBuffer);
+                if (failure === "auth") {
                     authRequired(username);
-                    finishFailure("Steam authentication required");
+                    finishFailure("Steam authentication required. Run steamcmd +login <username> once.");
+                } else if (failure === "missing") {
+                    finishFailure("steamcmd must be installed and available on PATH");
+                } else if (failure === "item") {
+                    finishFailure(`Workshop item ${activeId} is unavailable. Check that it exists and is visible, or authenticate an account with access.`);
                 } else {
-                    finishFailure(`steamcmd failed with exit code ${code}`);
+                    finishFailure(`steamcmd failed for Workshop item ${activeId} with exit code ${code}`);
                 }
                 return;
             }
-            mediaFinder.command = ["bash", "-c",
-                "find -- \"$1\" -type f \\( -iname '*.mp4' -o -iname '*.webm' -o -iname '*.gif' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \\) -printf '%s\\t%p\\n'",
-                "bash", `${Paths.steamWorkshopContentDir}/${activeId}`];
+            mediaFinder.command = ["bash", `${Quickshell.shellDir}/services/steam-workshop-media.sh`,
+                "discover", `${Paths.steamWorkshopContentDir}/${activeId}`, mediaPreference];
             mediaFinder.running = true;
         }
     }
@@ -295,7 +333,7 @@ Singleton {
                 const separator = line.indexOf("\t");
                 if (separator < 1)
                     return null;
-                const path = line.slice(separator + 1);
+                const path = Qt.atob(line.slice(separator + 1));
                 const rank = root.mediaRank(path);
                 if (rank < 0)
                     return null;
@@ -320,19 +358,6 @@ Singleton {
         onExited: code => {
             if (code !== 0) {
                 root.finishFailure("Failed to copy Workshop media");
-                return;
-            }
-            replaceProc.command = ["mv", "-f", "--", `${root.selectedDestination}.tmp`, root.selectedDestination];
-            replaceProc.running = true;
-        }
-    }
-
-    Process {
-        id: replaceProc
-
-        onExited: code => {
-            if (code !== 0) {
-                root.finishFailure("Failed to install Workshop media");
                 return;
             }
             root.downloadProgress(root.activeId, 1);
