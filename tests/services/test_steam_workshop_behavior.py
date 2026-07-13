@@ -53,6 +53,25 @@ def test_missing_api_key_is_derived_from_trimmed_configuration() -> None:
     assert call_helper("isMissingApiKey", " configured ") is False
 
 
+@pytest.mark.parametrize("configured", ["", " ", "\t\n", None])
+def test_blank_configured_api_key_falls_back_to_environment(configured) -> None:
+    assert call_helper("effectiveApiKey", configured, " environment-key ") == " environment-key "
+
+
+def test_configured_api_key_takes_precedence_over_environment() -> None:
+    assert call_helper("effectiveApiKey", " configured-key ", "environment-key") == " configured-key "
+
+
+def test_qml_uses_effective_api_key_for_requests_and_missing_key_state() -> None:
+    qml = (ROOT / "services/SteamWorkshopSearcher.qml").read_text()
+    assert 'Quickshell.env("STEAM_WEB_API_KEY")' in qml
+    assert "WorkshopHelpers.effectiveApiKey" in qml
+    assert '"key": apiKey' in qml
+    assert "WorkshopHelpers.isMissingApiKey(apiKey)" in qml
+    log_lines = [line for line in qml.splitlines() if "console." in line]
+    assert all("apiKey" not in line and "STEAM_WEB_API_KEY" not in line for line in log_lines)
+
+
 def test_cursor_merge_deduplicates_overlap_and_stops_cycles() -> None:
     existing = [{"id": "1", "title": "one"}, {"id": "2", "title": "two"}]
     overlapping = [{"id": "2", "title": "duplicate"}, {"id": "3", "title": "three"}]

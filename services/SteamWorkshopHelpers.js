@@ -11,6 +11,10 @@ function isMissingApiKey(value) {
     return String(value === null || value === undefined ? "" : value).trim().length === 0;
 }
 
+function effectiveApiKey(configured, environment) {
+    return isMissingApiKey(configured) ? String(environment ?? "") : String(configured);
+}
+
 function mergePage(existing, page, requestedCursor, nextCursor, requestedCursors) {
     const results = [];
     const added = [];

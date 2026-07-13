@@ -299,7 +299,16 @@ Wallhaven and Steam Workshop are enabled by default and can be controlled indepe
 }
 ```
 
-Steam Workshop browsing targets Wallpaper Engine (`appid=431960`). Downloads use `steamcmd`. Before the first restricted download, authenticate once with:
+Steam Workshop browsing targets Wallpaper Engine (`appid=431960`). Set the Steam Web API key with `services.steamWorkshopApiKey`; this configuration value takes precedence. When it is blank or whitespace, Caelestia falls back to the `STEAM_WEB_API_KEY` environment variable.
+
+A fish `export STEAM_WEB_API_KEY=...` is inherited only by processes started from that fish session. For a running Caelestia user service, import the variable and restart the service:
+
+```sh
+systemctl --user import-environment STEAM_WEB_API_KEY
+systemctl --user restart caelestia
+```
+
+Downloads use `steamcmd`. Before the first restricted download, authenticate once with:
 
 ```sh
 steamcmd +login YOUR_STEAM_USERNAME +quit

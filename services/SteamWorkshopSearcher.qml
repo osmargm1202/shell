@@ -12,7 +12,7 @@ Singleton {
 
     readonly property string apiBase: "https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/"
     readonly property string appId: "431960" // Wallpaper Engine app ID 431960 is used for API queries and steamcmd.
-    property string apiKey: GlobalConfig.services.steamWorkshopApiKey ?? ""
+    property string apiKey: WorkshopHelpers.effectiveApiKey(GlobalConfig.services.steamWorkshopApiKey ?? "", Quickshell.env("STEAM_WEB_API_KEY") ?? "")
     property bool enabled: GlobalConfig.services.steamWorkshopEnabled
     property string username: GlobalConfig.services.steamWorkshopUsername
     property bool loading: false
