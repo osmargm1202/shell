@@ -53,7 +53,7 @@ function classifyTransportError(error, httpStatus) {
 function classifyRequestFailure(source, status, apiResult) {
     const httpStatus = Number(status || 0);
     const result = Number(apiResult || 0);
-    if (httpStatus === 429 || (source === "api" && (result === 29 || result === 84))) {
+    if (httpStatus === 429 || (source === "api" && result === 84)) {
         return {
             "kind": "rateLimit",
             "message": "Steam Workshop rate limit reached. Retry later.",

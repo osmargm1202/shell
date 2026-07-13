@@ -186,7 +186,7 @@ def test_media_install_atomically_replaces_destination_symlink_without_following
         ("transport", 0, 0, {"kind": "transport", "message": "Unable to reach Steam Workshop. Check your connection and try again.", "retryLater": False}),
         ("http", 500, 0, {"kind": "service", "message": "Steam Workshop is temporarily unavailable. Try again later.", "retryLater": False}),
         ("http", 429, 0, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
-        ("api", 200, 29, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
+        ("api", 200, 29, {"kind": "service", "message": "Steam Workshop is temporarily unavailable. Try again later.", "retryLater": False}),
         ("api", 200, 84, {"kind": "rateLimit", "message": "Steam Workshop rate limit reached. Retry later.", "retryLater": True}),
         ("parse", 200, 0, {"kind": "response", "message": "Steam Workshop returned an invalid response. Try again.", "retryLater": False}),
     ],
