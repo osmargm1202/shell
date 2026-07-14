@@ -28,7 +28,11 @@
   } @ inputs: let
     forAllSystems = fn:
       nixpkgs.lib.genAttrs nixpkgs.lib.platforms.linux (
-        system: fn nixpkgs.legacyPackages.${system}
+        system:
+          fn (import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "steamcmd";
+          })
       );
   in {
     formatter = forAllSystems (pkgs: pkgs.alejandra);
@@ -38,6 +42,7 @@
         inherit (inputs) m3shapes;
         rev = self.rev or self.dirtyRev;
         stdenv = pkgs.clangStdenv;
+        steamcmd = pkgs.steamcmd.override {steam-run = pkgs.steam-run-free;};
         quickshell = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
           withX11 = false;
           withI3 = false;
